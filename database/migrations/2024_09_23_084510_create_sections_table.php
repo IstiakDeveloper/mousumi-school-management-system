@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('class_id')->constrained('school_classes'); // Reference school_classes
             $table->string('name');
             $table->timestamps();
         });

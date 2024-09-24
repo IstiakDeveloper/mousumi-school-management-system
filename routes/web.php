@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\SchoolClassController;
+use App\Http\Controllers\Admin\SectionController;
+use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
@@ -64,8 +67,12 @@ Route::middleware('auth')->group(function () {
 
 });
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('school-classes', SchoolClassController::class);
+    Route::resource('sections', SectionController::class);
+    Route::resource('parents', ParentController::class);
+    Route::resource('students', StudentController::class);
+
 });
 
 require __DIR__.'/auth.php';

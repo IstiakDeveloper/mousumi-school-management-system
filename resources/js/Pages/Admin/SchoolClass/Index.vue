@@ -44,7 +44,8 @@
 
                   <button @click="confirmDelete(classItem.id)" class="inline-flex items-center text-red-600 hover:text-red-800 bg-red-100 hover:bg-red-200 px-3 py-2 rounded transition duration-200 ml-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" />
+                      <path d="M6 2a1 1 0 00-1 1v1h12V3a1 1 0 00-1-1H6z" />
+                      <path fill-rule="evenodd" d="M5 4h10a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm1 1v13h8V5H6z" clip-rule="evenodd" />
                     </svg>
                     Delete
                   </button>
@@ -53,47 +54,46 @@
             </tbody>
           </table>
         </div>
-
-        <!-- Confirm Dialog -->
-        <ConfirmDialog :show="showDialog" @update:show="showDialog = false" @confirm="deleteClass" />
       </div>
     </div>
+
+    <ConfirmationDialog 
+      :show="isDialogVisible" 
+      @update:show="isDialogVisible = $event" 
+      @confirm="deleteClass"
+    />
   </AdminLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Link, useForm, Head } from '@inertiajs/vue3';
+import { Link, Head, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import ConfirmDialog from '@/Components/ConfirmationDialog.vue';
+import ConfirmationDialog from '@/Components/ConfirmationDialog.vue';
+import { ref } from 'vue';
 
 const props = defineProps({
   classes: Array,
 });
 
-const showDialog = ref(false);
+const isDialogVisible = ref(false);
 const classToDelete = ref(null);
+const form = useForm({});
 
 function confirmDelete(classId) {
-  showDialog.value = true;
   classToDelete.value = classId;
+  isDialogVisible.value = true;
 }
 
 function deleteClass() {
   if (classToDelete.value) {
-    Inertia.delete(route('admin.school-classes.destroy', classToDelete.value), {
+    form.delete(route('admin.school-classes.destroy', classToDelete.value), {
       onSuccess: () => {
-        showDialog.value = false;
-        // Optionally, refresh the classes list or show a success message
-      },
-      onError: () => {
-        console.error("An error occurred while trying to delete the class.");
+        isDialogVisible.value = false; // Close dialog after successful deletion
       },
     });
   }
 }
 </script>
-
 
 <style scoped>
 .btn-primary {

@@ -48,7 +48,7 @@ class SchoolClassController extends Controller
     public function show(SchoolClass $schoolClass)
     {
         return Inertia::render('Admin/SchoolClass/Show', [
-            'class' => $schoolClass,
+            'SchoolClass' => $schoolClass,
         ]);
     }
 

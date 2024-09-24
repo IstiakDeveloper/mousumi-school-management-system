@@ -1,51 +1,64 @@
 <template>
-  <Head title="School Class Details" />
+  <Head :title="schoolClass ? schoolClass.name : 'Loading...'" />
 
   <AdminLayout>
     <div class="container mx-auto py-8">
       <div class="bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-3xl font-bold mb-4">{{ class.name }}</h1>
-        <p class="mb-4">{{ class.description }}</p>
-        <Link :href="`/admin/school-classes/${class.id}/edit`" class="btn-primary">Edit Class</Link>
-        <button @click="confirmDelete(class.id)" class="btn-danger ml-4">Delete Class</button>
+        <h1 v-if="SchoolClass" class="text-3xl font-bold text-gray-800 mb-4">{{ SchoolClass.name }}</h1>
+        <p v-if="SchoolClass" class="text-gray-600 mb-4">{{ SchoolClass.description }}</p>
+
+        <div class="flex space-x-4" v-if="SchoolClass">
+          <Link :href="route('admin.school-classes.edit', SchoolClass.id)" class="btn-primary">
+            Edit
+          </Link>
+          <button @click="confirmDelete(SchoolClass.id)" class="btn-secondary">
+            Delete
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Confirm Dialog -->
-    <ConfirmDialog :show="showDialog" @update:show="showDialog = false" @confirm="deleteClass" />
+    <ConfirmationDialog 
+      :show="isDialogVisible" 
+      @update:show="isDialogVisible = $event" 
+      @confirm="deleteClass"
+    />
   </AdminLayout>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import ConfirmDialog from '@/Components/ConfirmationDialog.vue';
+import ConfirmationDialog from '@/Components/ConfirmationDialog.vue';
 
 const props = defineProps({
-  class: Object,
+  SchoolClass: Object, // Ensure this matches the key from your controller
 });
 
-const showDialog = ref(false);
-const currentClassId = ref(null);
+const isDialogVisible = ref(false);
+const form = useForm({});
 
 function confirmDelete(classId) {
-  showDialog.value = true;
-  currentClassId.value = classId;
+  isDialogVisible.value = true;
 }
 
 function deleteClass() {
-  if (currentClassId.value) {
-    Inertia.delete(route('school-classes.destroy', currentClassId.value), {
-      onSuccess: () => {
-        // Redirect to the index page after deletion
-        Inertia.visit('/admin/school-classes');
-      },
-    });
-  }
+  form.delete(route('admin.school-classes.destroy', props.SchoolClass.id), {
+    onSuccess: () => {
+      isDialogVisible.value = false; // Close dialog after successful deletion
+      window.location.href = route('admin.school-classes.index'); // Redirect to index after deletion
+    },
+  });
 }
 </script>
 
 <style scoped>
-/* Add your styles here */
+.btn-primary {
+  @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-700 transition duration-200;
+}
+
+.btn-secondary {
+  @apply bg-red-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-red-700 transition duration-200;
+}
 </style>
