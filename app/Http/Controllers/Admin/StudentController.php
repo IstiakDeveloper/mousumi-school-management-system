@@ -18,7 +18,8 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::with(['user', 'schoolClass', 'section', 'parent'])->get(); // Updated relationship reference
+        $students = Student::with(['user', 'class', 'section', 'parent'])->get(); // Updated relationship reference
+        // dd($students);
         return Inertia::render('Admin/Student/Index', [
             'students' => $students,
         ]);
@@ -27,7 +28,7 @@ class StudentController extends Controller
     // Display the form for creating a new student
     public function create()
     {
-        $schoolClasses = SchoolClass::all(); // Fetch all school classes
+        $schoolClassesList = SchoolClass::all(); // Fetch all school classes
         $sections = Section::all(); // Fetch all sections
         $parents = ParentModel::with('user')->get(); // Eager load parents
     
@@ -35,19 +36,19 @@ class StudentController extends Controller
         $locationData = json_decode(File::get(public_path('location.json')), true);
     
         return Inertia::render('Admin/Student/Create', [
-            'classes' => $schoolClasses, // School classes
+            'classes' => $schoolClassesList, // School classes
             'sections' => $sections, // Sections
             'parents' => $parents, // Parents
             'divisions' => $locationData['divisions'], // Divisions from JSON
             'districts' => $locationData['districts'], // Districts from JSON
         ]);
     }
-
-    // Store a newly created student in storage
+  
     public function store(Request $request)
     {
         // Validate the request data
         $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'student_id' => 'required|string|unique:students,student_id', // Validate student ID
             'form_number' => 'required|string|unique:students,form_number', // Validate form number
             'name_bn' => 'required|string|max:255', // Validate Bangla name
@@ -111,7 +112,7 @@ class StudentController extends Controller
             'address' => 'nullable|string|max:255', // Validate address
         ]);
 
-        // Create the user for the student with a default password
+        // // Create the user for the student with a default password
         $role = Role::firstOrCreate(['name' => 'Student']);
         $user = User::create([
             'name' => $request->name_en,
@@ -120,8 +121,16 @@ class StudentController extends Controller
         ]);
         $user->assignRole($role);
 
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $filename = time() . '.' . $request->photo->getClientOriginalExtension();
+            $request->photo->move(public_path('students'), $filename);
+            $photoPath = $filename; // Store the filename for database insertion
+        }
+
         // Create the student model associated with the user
         Student::create([
+            'photo' => $photoPath,
             'user_id' => $user->id,
             'class_id' => $request->class_id,
             'section_id' => $request->section_id,

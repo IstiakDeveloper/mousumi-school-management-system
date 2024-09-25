@@ -19,7 +19,7 @@
               <thead>
                 <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll Number</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
@@ -28,11 +28,12 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr v-for="student in students" :key="student.id">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ student.user.name }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.user.email }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.roll_number }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.class.name }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.section.name }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ student.name_en }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.parent.name }}</td>
+                  
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student?.roll_number }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.class.name }}</td> 
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ student.section.name }}</td> 
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link :href="route('admin.students.edit', student.id)" class="inline-flex items-center text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded transition duration-200 ml-4">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">

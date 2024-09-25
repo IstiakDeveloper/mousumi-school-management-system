@@ -49,6 +49,7 @@ class ParentController extends Controller
         // Create the parent model associated with the user
         ParentModel::create([
             'user_id' => $user->id,
+            'name' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address,
         ]);
@@ -91,6 +92,7 @@ class ParentController extends Controller
 
         // Update the parent model
         $parent->update([
+            'naem' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address,
         ]);
