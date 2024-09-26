@@ -1,29 +1,30 @@
 <template>
-<Head title="Admin Permission" />
-  <AdminLayout>
-    <div class="container mx-auto py-8">
-      <div class="bg-white shadow rounded-lg p-6">
-        <h1 class="text-2xl font-semibold text-gray-700 mb-6">Edit Permission</h1>
-        <form @submit.prevent="updatePermission">
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Permission Name</label>
-            <input
-              v-model="form.name"
-              type="text"
-              class="form-input"
-              placeholder="Enter permission name"
-            />
-            <span v-if="errors.name" class="text-red-600 text-sm">{{ errors.name }}</span>
-          </div>
-          <div class="mt-6">
-            <button type="submit" class="btn-primary">Update Permission</button>
-            <Link href="/permissions" class="btn-secondary ml-2">Cancel</Link>
-          </div>
-        </form>
+    <Head title="Admin Permission" />
+    <AdminLayout>
+      <div class="container mx-auto py-8">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h1 class="text-2xl font-semibold text-gray-700 dark:text-white mb-6">Edit Permission</h1>
+          <form @submit.prevent="updatePermission">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permission Name</label>
+              <input
+                v-model="form.name"
+                type="text"
+                class="form-input dark:bg-gray-700 dark:text-white dark:border-gray-600 placeholder-gray-400"
+                placeholder="Enter permission name"
+                />
+
+              <span v-if="errors.name" class="text-red-600 text-sm">{{ errors.name }}</span>
+            </div>
+            <div class="mt-6">
+              <button type="submit" class="btn-primary">Update Permission</button>
+              <Link href="/permissions" class="btn-secondary ml-2">Cancel</Link>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-  </AdminLayout>
-</template>
+    </AdminLayout>
+  </template>
 
 <script>
 import { ref } from 'vue';

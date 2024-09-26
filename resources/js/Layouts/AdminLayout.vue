@@ -1,15 +1,15 @@
 <template>
-  <div class="flex h-screen overflow-hidden bg-gray-100">
+  <div class="flex h-screen overflow-hidden bg-gray-100 dark:bg-gray-700">
     <!-- Sidebar -->
-    <aside 
+    <aside
       :class="[
-        'fixed inset-y-0 left-0 w-64 bg-white shadow-lg transition-transform transform lg:translate-x-0 z-10',
+        'bg-white dark:bg-gray-800 fixed inset-y-0 left-0 w-64 shadow-lg transition-transform transform lg:translate-x-0 z-10',
         showSidebar ? 'translate-x-0' : '-translate-x-64'
       ]"
     >
       <div class="p-4 flex items-center justify-between">
-        <h1 class="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-        <button @click="toggleSidebar" class="lg:hidden text-gray-500 hover:text-gray-600">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-white">Admin Dashboard</h1>
+        <button @click="toggleSidebar" class="lg:hidden text-gray-500 dark:text-gray-100 hover:text-gray-600">
           <!-- Close Icon -->
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -23,11 +23,11 @@
             <Link
               v-if="!item.children"
               :href="item.link"
-              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-200"
-              :class="{ 'bg-gray-200': isActive(item.link) }"
+              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-900"
+              :class="{ 'bg-gray-200 dark:bg-gray-900': isActive(item.link) }"
             >
               <!-- Icon -->
-              <svg v-if="item.icon" class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg v-if="item.icon" class="w-5 h-5 text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path :d="item.icon"></path>
               </svg>
               <span>{{ item.name }}</span>
@@ -37,11 +37,11 @@
             <button
               v-if="item.children"
               @click="toggleDropdown(item)"
-              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-200"
-              :class="{ 'bg-gray-200': isActive(item.link) || hasActiveChild(item) }"
+              class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-800"
+              :class="{ 'bg-gray-200 dark:bg-gray-900': isActive(item.link) || hasActiveChild(item) }"
             >
               <!-- Icon -->
-              <svg v-if="item.icon" class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg v-if="item.icon" class="w-5 h-5  text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path :d="item.icon"></path>
               </svg>
               <span>{{ item.name }}</span>
@@ -63,11 +63,11 @@
               <li v-for="child in item.children" :key="child.name">
                 <Link
                   :href="child.link"
-                  class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 w-full rounded-md"
-                  :class="{ 'bg-gray-200': isActive(child.link) }"
+                  class="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-900 w-full rounded-md"
+                  :class="{ 'bg-gray-200 dark:bg-gray-900': isActive(child.link) }"
                 >
                   <!-- Icon -->
-                  <svg v-if="child.icon" class="w-5 h-5 text-gray-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <svg v-if="child.icon" class="w-5 h-5 text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
                   </svg>
                   <!-- Text -->
@@ -83,8 +83,9 @@
     <!-- Main Content -->
     <div class="flex-1 flex flex-col lg:ml-64">
       <!-- Top Bar -->
-      <header class="fixed top-0 left-0 right-0 lg:left-64 bg-white shadow-md z-20 flex justify-between items-center p-4">
-        <button @click="toggleSidebar" class="lg:hidden text-gray-500 hover:text-gray-600">
+      <header class="fixed top-0 left-0 right-0 lg:left-64 shadow-md z-20 flex justify-between items-center p-4">
+
+        <button @click="toggleSidebar" class="lg:hidden text-gray-500 dark:text-white hover:text-gray-600 dark:hover:text-gray-50">
           <!-- Menu Icon -->
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -93,23 +94,31 @@
         <div class="relative">
           <button @click="toggleUserMenu" class="flex items-center space-x-2 focus:outline-none">
             <img src="https://via.placeholder.com/32" class="w-8 h-8 rounded-full" alt="User Avatar">
-            <span class="text-gray-600">User Name</span>
-            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <span class="text-gray-600 dark:text-gray-50">User Name</span>
+            <svg class="w-4 h-4 text-gray-600 dark:text-gray-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </button>
           <!-- User Dropdown -->
-          <div v-if="showUserMenu" class="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg">
-            <Link href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
-            <button @click="logout" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</button>
-          </div>
+          <div v-if="showUserMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-600 border rounded-lg shadow-lg">
+            <Link href="/profile" class="block px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900">Profile</Link>
+            <Link :href="route('logout')" method="post" as="button" class="w-full text-left px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900">Logout</Link>
+        </div>
+        </div>
+
+        <div>
+            <button
+                @click="switchTheme"
+            >
+            <i class="fa-solid fa-circle-half-stroke"></i>
+            </button>
         </div>
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-6 mt-16 overflow-auto bg-gray-100">
+      <main class="flex-1 p-6 mt-16 overflow-auto">
         <!-- Center Content -->
-        <div class="max-w-4xl mx-auto">
+        <div class="mx-auto">
           <slot></slot>
         </div>
       </main>
@@ -120,6 +129,7 @@
 <script setup>
 import { ref } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
+import { switchTheme } from '@/theme';
 
 const showSidebar = ref(false);
 const showUserMenu = ref(false);
@@ -154,7 +164,7 @@ const navItems = ref([
   {
     name: 'Users',
     link: '/users',
-    icon: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z', 
+    icon: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
     isActive: false,
   },
 ]);

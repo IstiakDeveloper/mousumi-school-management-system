@@ -31,10 +31,10 @@ class StudentController extends Controller
         $schoolClassesList = SchoolClass::all(); // Fetch all school classes
         $sections = Section::all(); // Fetch all sections
         $parents = ParentModel::with('user')->get(); // Eager load parents
-    
+
         // Load location data from JSON file
         $locationData = json_decode(File::get(public_path('location.json')), true);
-    
+
         return Inertia::render('Admin/Student/Create', [
             'classes' => $schoolClassesList, // School classes
             'sections' => $sections, // Sections
@@ -43,15 +43,15 @@ class StudentController extends Controller
             'districts' => $locationData['districts'], // Districts from JSON
         ]);
     }
-  
+
     public function store(Request $request)
     {
         // Validate the request data
         $request->validate([
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'student_id' => 'required|string|unique:students,student_id', // Validate student ID
-            'form_number' => 'required|string|unique:students,form_number', // Validate form number
-            'name_bn' => 'required|string|max:255', // Validate Bangla name
+            'form_number' => 'nullable|string|unique:students,form_number', // Validate form number
+            'name_bn' => 'nullable|string|max:255', // Validate Bangla name
             'name_en' => 'required|string|max:255', // Validate English name
             'birth_certificate_number' => 'required|string|max:255', // Validate birth certificate number
             'birth_place_district' => 'required|string|max:255', // Validate birth place district
@@ -59,7 +59,7 @@ class StudentController extends Controller
             'gender' => 'required|in:Male,Female,Other', // Validate gender
             'nationality' => 'required|string|max:255', // Validate nationality
             'religion' => 'required|string|max:255', // Validate religion
-            'blood_group' => 'required|string|max:255', // Validate blood group
+            'blood_group' => 'nullable|string|max:255', // Validate blood group
             'class_role' => 'required|string|max:255', // Validate class role
             'minorities' => 'boolean', // Validate minorities
             'minority_name' => 'nullable|string|max:255', // Validate minority name
@@ -108,18 +108,9 @@ class StudentController extends Controller
             'information_correct' => 'boolean',
             'class_id' => 'required|exists:school_classes,id', // Validate class ID
             'section_id' => 'required|exists:sections,id', // Validate section ID
-            'parent_id' => 'required|exists:parent_models,id', // Validate parent ID
+            'parent_id' => 'nullable|exists:parent_models,id', // Validate parent ID
             'address' => 'nullable|string|max:255', // Validate address
         ]);
-
-        // // Create the user for the student with a default password
-        $role = Role::firstOrCreate(['name' => 'Student']);
-        $user = User::create([
-            'name' => $request->name_en,
-            'email' => $request->email,
-            'password' => Hash::make('studentpassword'), // Set a default password
-        ]);
-        $user->assignRole($role);
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
@@ -127,6 +118,18 @@ class StudentController extends Controller
             $request->photo->move(public_path('students'), $filename);
             $photoPath = $filename; // Store the filename for database insertion
         }
+
+        // // Create the user for the student with a default password
+        $role = Role::firstOrCreate(['name' => 'Student']);
+        $user = User::create([
+            'name' => $request->name_en,
+            'email' => $request->email,
+            'password' => Hash::make('studentpassword'), // Set a default password
+            'photo' => $photoPath,
+        ]);
+        $user->assignRole($role);
+
+
 
         // Create the student model associated with the user
         Student::create([
@@ -216,9 +219,10 @@ class StudentController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'student_id' => 'required|string|unique:students,student_id,' . $student->id,
-            'form_number' => 'required|string|unique:students,form_number,' . $student->id,
-            'name_bn' => 'required|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'student_id' => 'required|string',
+            'form_number' => 'nullable|string',
+            'name_bn' => 'nullable|string|max:255',
             'name_en' => 'required|string|max:255',
             'birth_certificate_number' => 'required|string|max:255',
             'birth_place_district' => 'required|string|max:255',
@@ -226,12 +230,12 @@ class StudentController extends Controller
             'gender' => 'required|in:Male,Female,Other',
             'nationality' => 'required|string|max:255',
             'religion' => 'required|string|max:255',
-            'blood_group' => 'required|string|max:255',
+            'blood_group' => 'nullable|string|max:255',
             'class_role' => 'required|string|max:255',
             'minorities' => 'boolean',
             'minority_name' => 'nullable|string|max:255',
             'handicap' => 'nullable|string|max:255',
-            // Validate parent details
+            // Mother details
             'mother_nid' => 'nullable|string|max:255',
             'mother_dob' => 'nullable|date',
             'mother_name_bn' => 'nullable|string|max:255',
@@ -239,6 +243,7 @@ class StudentController extends Controller
             'mother_mobile' => 'nullable|string|max:255',
             'mother_occupation' => 'nullable|string|max:255',
             'mother_dead' => 'boolean',
+            // Father details
             'father_nid' => 'nullable|string|max:255',
             'father_dob' => 'nullable|date',
             'father_name_bn' => 'nullable|string|max:255',
@@ -246,7 +251,7 @@ class StudentController extends Controller
             'father_mobile' => 'nullable|string|max:255',
             'father_occupation' => 'nullable|string|max:255',
             'father_dead' => 'boolean',
-            // Validate address details
+            // Present address validation
             'present_address_division' => 'nullable|string|max:255',
             'present_address_district' => 'nullable|string|max:255',
             'present_address_upazila' => 'nullable|string|max:255',
@@ -256,6 +261,7 @@ class StudentController extends Controller
             'present_address_house_number' => 'nullable|string|max:255',
             'present_address_post' => 'nullable|string|max:255',
             'present_address_post_code' => 'nullable|string|max:255',
+            // Permanent address validation
             'permanent_address_division' => 'nullable|string|max:255',
             'permanent_address_district' => 'nullable|string|max:255',
             'permanent_address_upazila' => 'nullable|string|max:255',
@@ -268,15 +274,30 @@ class StudentController extends Controller
             'information_correct' => 'boolean',
             'class_id' => 'required|exists:school_classes,id',
             'section_id' => 'required|exists:sections,id',
-            'parent_id' => 'required|exists:parent_models,id',
+            'parent_id' => 'nullable|exists:parent_models,id',
+            'address' => 'nullable|string|max:255',
         ]);
+
+        $photoPath = $student->user->photo;
+        if ($request->hasFile('photo')) {
+            // Delete old photo if it exists
+            if ($photoPath && file_exists(public_path('students/' . $photoPath))) {
+                unlink(public_path('students/' . $photoPath));
+            }
+
+            // Upload new photo
+            $filename = time() . '.' . $request->photo->getClientOriginalExtension();
+            $request->photo->move(public_path('students'), $filename);
+            $photoPath = $filename;
+
+        }
 
         // Update the user for the student
         $user = $student->user;
         $user->update([
             'name' => $request->name_en,
             'email' => $request->email,
-            // Password update logic can be added here if necessary
+            'photo' => $photoPath,
         ]);
 
         // Update the student model
@@ -332,10 +353,30 @@ class StudentController extends Controller
             'permanent_address_post' => $request->permanent_address_post,
             'permanent_address_post_code' => $request->permanent_address_post_code,
             'information_correct' => $request->information_correct,
+            'photo' => $photoPath,
         ]);
+
+        // Handle the photo upload
+        if ($request->hasFile('photo')) {
+            // Delete the old photo if it exists
+            if ($student->photo) {
+                $oldPhotoPath = public_path('students/' . $student->photo);
+                if (file_exists($oldPhotoPath)) {
+                    unlink($oldPhotoPath); // Delete the old photo
+                }
+            }
+
+            // Store the new photo
+            $filename = time() . '.' . $request->photo->getClientOriginalExtension();
+            $request->photo->move(public_path('students'), $filename);
+            $student->photo = $filename; // Save new filename
+            $student->save(); // Save the new photo filename to the database
+        }
+
 
         return redirect()->route('admin.students.index')->with('success', 'Student updated successfully!');
     }
+
 
     // Remove the specified student from storage
     public function destroy(Student $student)

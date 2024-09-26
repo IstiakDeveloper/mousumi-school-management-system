@@ -1,29 +1,29 @@
 <template>
     <Head title="Edit Section" />
-  
+
     <AdminLayout>
       <div class="container mx-auto py-8">
-        <div class="bg-white shadow-lg rounded-lg p-8">
-          <h1 class="text-3xl font-bold mb-6">Edit Section</h1>
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
+          <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-300">Edit Section</h1>
           <form @submit.prevent="updateSection">
             <div class="mb-4">
-              <label for="name" class="block text-sm font-medium text-gray-700">Section Name</label>
+              <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Section Name</label>
               <input
                 type="text"
                 v-model="form.name"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500"
+                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-600 dark:focus:border-blue-600 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
-  
+
             <div class="flex justify-end">
-              <button type="submit" class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-md px-4 py-2">
+              <button type="submit" class="btn-primary inline-flex items-center">
                 Update Section
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M10 2a1 1 0 00-1 1v6H3a1 1 0 100 2h6v6a1 1 0 002 0v-6h6a1 1 0 100-2h-6V3a1 1 0 00-1-1z" />
                 </svg>
               </button>
-              <Link href="/admin/sections" class="inline-flex items-center text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md px-4 py-2 ml-4">
+              <Link href="/admin/sections" class="btn-secondary inline-flex items-center ml-4">
                 Back to Sections
               </Link>
             </div>
@@ -34,27 +34,27 @@
       </div>
     </AdminLayout>
   </template>
-  
+
   <script setup>
   import { ref, onMounted } from 'vue';
   import { useForm, Link, Head } from '@inertiajs/vue3';
   import AdminLayout from '@/Layouts/AdminLayout.vue';
-  
+
   const props = defineProps({
     section: Object,
   });
-  
+
   const form = useForm({
-    name: props.section.name,
+    name: '',
   });
-  
+
   const successMessage = ref('');
   const errorMessage = ref('');
-  
+
   onMounted(() => {
     form.name = props.section.name; // Initialize form with existing section data
   });
-  
+
   function updateSection() {
     form.put(route('admin.sections.update', props.section.id), {
       onSuccess: () => {
@@ -68,14 +68,13 @@
     });
   }
   </script>
-  
+
   <style scoped>
   .btn-primary {
     @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-700 transition duration-200;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded shadow hover:bg-gray-400 transition duration-200;
   }
   </style>
-  

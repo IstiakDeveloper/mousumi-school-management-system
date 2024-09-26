@@ -41,13 +41,13 @@ class RolePermissionController extends Controller
     public function edit(Role $role)
     {
         $permissions = Permission::all();
-    
+
         return Inertia::render('RolePermissions/Edit', [
             'role' => $role,
             'permissions' => $permissions,
         ]);
     }
-    
+
 
     public function update(Request $request, Role $role)
     {
