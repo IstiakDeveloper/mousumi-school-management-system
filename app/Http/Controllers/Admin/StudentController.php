@@ -191,13 +191,15 @@ class StudentController extends Controller
         return redirect()->route('admin.students.index')->with('success', 'Student created successfully!');
     }
 
+    
     // Display the specified student
     public function show(Student $student)
     {
         return Inertia::render('Admin/Student/Show', [
-            'student' => $student->load(['user', 'schoolClass', 'section', 'parent']),
+            'student' => $student->load(['user', 'class', 'section', 'parent']),
         ]);
     }
+    
 
     // Show the form for editing the specified student
     public function edit(Student $student)

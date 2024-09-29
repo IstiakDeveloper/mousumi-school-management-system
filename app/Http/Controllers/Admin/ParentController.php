@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ParentModel;
+use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -33,25 +34,26 @@ class ParentController extends Controller
         $request->validate([
             'name' => 'required|string|max:255', // Validate user name
             'email' => 'required|email|unique:users,email', // Validate email
-            'phone' => 'nullable|string|max:15', // Validate phone number
-            'address' => 'nullable|string|max:255', // Validate address
+            'subject_specialization' => 'required|string|max:255', // Validate subject specialization
+            'class_id' => 'nullable|exists:school_classes,id', // Validate class ID
+            'section_id' => 'nullable|exists:sections,id', // Validate section ID
         ]);
 
         // Create the user with a default password
-        $role = Role::firstOrCreate(['name' => 'Parent']);
+        $role = Role::firstOrCreate(['name' => 'Teacher']);
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make('parentpassword'),
+            'password' => Hash::make('teacherpassword'), // Default password
         ]);
         $user->assignRole($role);
 
-        // Create the parent model associated with the user
-        ParentModel::create([
+        // Create the teacher model associated with the user
+        Teacher::create([
             'user_id' => $user->id,
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'address' => $request->address,
+            'subject_specialization' => $request->subject_specialization,
+            'class_id' => $request->class_id,
+            'section_id' => $request->section_id,
         ]);
 
         return redirect()->route('admin.parents.index')->with('success', 'Parent created successfully!');

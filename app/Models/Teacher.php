@@ -20,6 +20,10 @@ class Teacher extends Model
     {
         return $this->belongsTo(SchoolClass::class);
     }
+    public function schoolClass()
+    {
+        return $this->belongsTo(SchoolClass::class, 'class_id');
+    }
 
     public function section()
     {

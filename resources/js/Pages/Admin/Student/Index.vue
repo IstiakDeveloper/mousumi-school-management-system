@@ -39,6 +39,15 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ student?.class.name }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ student?.section.name }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+
+                    <Link :href="route('admin.students.show', student.id)" class="inline-flex items-center text-green-600 hover:text-green-800 bg-green-100 hover:bg-green-200 px-3 py-2 rounded transition duration-200 ml-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 8a1 1 0 011-1h8a1 1 0 011 1v6a1 1 0 01-1 1H6a1 1 0 01-1-1V8z" />
+                        <path fill-rule="evenodd" d="M4 5a1 1 0 011-1h10a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" clip-rule="evenodd" />
+                      </svg>
+                      Show
+                    </Link>
+                    
                     <Link :href="route('admin.students.edit', student.id)" class="inline-flex items-center text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded transition duration-200 ml-4">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M12.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-9 9a1 1 0 01-.353.213l-3 1a1 1 0 01-1.293-1.293l1-3a1 1 0 01.213-.353l9-9z" />
