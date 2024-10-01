@@ -8,15 +8,37 @@ use Illuminate\Database\Eloquent\Model;
 class Exam extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'exam_date', 'class_id'];
+    protected $fillable = [
+        'exam_category_id',
+        'class_id',
+        'subject_id',
+        'starting_date',
+        'starting_time',
+        'ending_date',
+        'ending_time',
+        'total_marks',
+    ];
+
+    public function category()
+    {
+        return $this->belongsTo(ExamCategory::class);
+    }
+    public function examCategory()
+    {
+        return $this->belongsTo(ExamCategory::class);
+    }
 
     public function class()
     {
         return $this->belongsTo(SchoolClass::class);
     }
-
-    public function results()
+    public function schoolClass()
     {
-        return $this->hasMany(Result::class);
+        return $this->belongsTo(SchoolClass::class, 'class_id');
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
     }
 }

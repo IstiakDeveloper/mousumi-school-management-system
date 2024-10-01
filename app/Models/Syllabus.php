@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Syllabus extends Model
 {
     use HasFactory;
-    protected $fillable = ['class_id', 'subject_id', 'description'];
+    protected $fillable = ['class_id', 'subject_id', 'description', 'pdf_file'];
 
     public function class()
     {

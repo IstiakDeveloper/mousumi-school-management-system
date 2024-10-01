@@ -1,10 +1,15 @@
 <?php
 
+use App\Http\Controllers\Admin\ExamCategoryController;
+use App\Http\Controllers\Admin\ExamController;
+use App\Http\Controllers\Admin\GradeBookController;
+use App\Http\Controllers\Admin\GradeController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\SchoolClassController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\SyllabusController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermission\PermissionController;
@@ -76,6 +81,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     Route::resource('students', StudentController::class);
     Route::resource('teachers', TeacherController::class);
     Route::resource('subjects', SubjectController::class);
+    Route::resource('syllabus', SyllabusController::class);
+    Route::resource('exam-categories', ExamCategoryController::class);
+    Route::resource('exams', ExamController::class);
+    Route::resource('grades', GradeController::class);
+
+    Route::resource('gradebooks', GradeBookController::class)->only(['index', 'create']);
+
+
+    Route::get('gradebooks/show-students', function () {
+        return redirect()->route('admin.gradebooks.create')->with('error', 'Direct access to this route is not allowed.');
+    })->name('gradebooks.showStudents.get');
+    // Only allow POST requests for showStudents
+    Route::post('gradebooks/show-students', [GradeBookController::class, 'showStudents'])->name('gradebooks.showStudents');
+
+
+
+    Route::post('gradebooks/store-marks', [GradeBookController::class, 'storeMarks'])->name('gradebooks.storeMarks');
+
+
 });
 
 require __DIR__.'/auth.php';

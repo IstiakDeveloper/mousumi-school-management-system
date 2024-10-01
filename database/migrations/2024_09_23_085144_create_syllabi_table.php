@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('syllabus', function (Blueprint $table) {
+        Schema::create('syllabi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('class_id')->constrained('school_classes');
             $table->foreignId('subject_id')->constrained('subjects');
             $table->text('description')->nullable(); // Detailed syllabus
+            $table->string('pdf_file')->nullable(); // Column for PDF file
             $table->timestamps();
         });
+
     }
 
     /**
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('syllabus');
+        Schema::dropIfExists('syllabi');
     }
 };
