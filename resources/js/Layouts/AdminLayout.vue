@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'bg-white dark:bg-gray-800 fixed inset-y-0 left-0 w-64 shadow-lg transition-transform transform lg:translate-x-0 z-10',
+        'bg-white dark:bg-gray-800 fixed inset-y-0 left-0 w-64 shadow-lg transition-transform transform lg:translate-x-0 z-10 overflow-y-auto',
         showSidebar ? 'translate-x-0' : '-translate-x-64'
       ]"
     >
@@ -19,33 +19,28 @@
       <nav class="mt-5">
         <ul>
           <li v-for="item in navItems" :key="item.name" class="relative">
-            <!-- Main Link -->
             <Link
               v-if="!item.children"
               :href="item.link"
               class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-900"
               :class="{ 'bg-gray-200 dark:bg-gray-900': isActive(item.link) }"
             >
-              <!-- Icon -->
               <svg v-if="item.icon" class="w-5 h-5 text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path :d="item.icon"></path>
               </svg>
               <span>{{ item.name }}</span>
             </Link>
-
-            <!-- Dropdown Button -->
+          
             <button
-              v-if="item.children"
+              v-else
               @click="toggleDropdown(item)"
               class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-800"
               :class="{ 'bg-gray-200 dark:bg-gray-900': isActive(item.link) || hasActiveChild(item) }"
             >
-              <!-- Icon -->
-              <svg v-if="item.icon" class="w-5 h-5  text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg v-if="item.icon" class="w-5 h-5 text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path :d="item.icon"></path>
               </svg>
               <span>{{ item.name }}</span>
-              <!-- Dropdown Arrow -->
               <svg
                 :class="{ 'transform rotate-180': item.isOpen || hasActiveChild(item) }"
                 class="w-4 h-4 transition-transform"
@@ -57,8 +52,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
-
-            <!-- Dropdown Links -->
+          
             <ul v-if="item.children && (item.isOpen || hasActiveChild(item))" class="pl-8">
               <li v-for="child in item.children" :key="child.name">
                 <Link
@@ -66,25 +60,22 @@
                   class="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-50 hover:bg-gray-200 dark:hover:bg-gray-900 w-full rounded-md"
                   :class="{ 'bg-gray-200 dark:bg-gray-900': isActive(child.link) }"
                 >
-                  <!-- Icon -->
                   <svg v-if="child.icon" class="w-5 h-5 text-gray-600 dark:text-gray-50 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
                   </svg>
-                  <!-- Text -->
                   <span>{{ child.name }}</span>
                 </Link>
               </li>
             </ul>
           </li>
+                 
         </ul>
       </nav>
     </aside>
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col lg:ml-64">
-      <!-- Top Bar -->
       <header class="fixed top-0 left-0 right-0 lg:left-64 shadow-md z-20 flex justify-between items-center p-4">
-
         <button @click="toggleSidebar" class="lg:hidden text-gray-500 dark:text-white hover:text-gray-600 dark:hover:text-gray-50">
           <!-- Menu Icon -->
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -99,25 +90,20 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </button>
-          <!-- User Dropdown -->
           <div v-if="showUserMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-600 border rounded-lg shadow-lg">
             <Link href="/profile" class="block px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900">Profile</Link>
             <Link :href="route('logout')" method="post" as="button" class="w-full text-left px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900">Logout</Link>
-        </div>
+          </div>
         </div>
 
         <div>
-            <button
-                @click="switchTheme"
-            >
+          <button @click="switchTheme">
             <i class="fa-solid fa-circle-half-stroke"></i>
-            </button>
+          </button>
         </div>
       </header>
 
-      <!-- Page Content -->
       <main class="flex-1 p-6 mt-16 overflow-auto">
-        <!-- Center Content -->
         <div class="mx-auto">
           <slot></slot>
         </div>
@@ -125,6 +111,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref } from 'vue';
@@ -162,6 +149,33 @@ const navItems = ref([
     ],
   },
   {
+    name: 'Academics',
+    link: '/',
+    icon: 'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5', // SVG path data for a lock icon
+    isActive: false,
+    children: [
+      { name: 'Students', link: '/admin/students', icon: 'M5 5h14v14H5V5z', isActive: false },
+      { name: 'Teachers', link: '/admin/teachers', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Partners', link: '/admin/parents', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Class', link: '/admin/school-classes', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Section', link: '/admin/sections', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Subject', link: '/admin/subjects', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Syllabus', link: '/admin/syllabus', icon: 'M2 2h20v20H2V2z', isActive: false },
+    ],
+  },
+  {
+    name: 'Examination',
+    link: '/',
+    icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z',
+    isActive: false,
+    children: [
+      { name: 'Exam Categories', link: '/admin/exam-categories', icon: 'M5 5h14v14H5V5z', isActive: false },
+      { name: 'Exams', link: '/admin/exams', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'grades', link: '/admin/grades', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Mark', link: '/admin/gradebooks', icon: 'M2 2h20v20H2V2z', isActive: false },
+    ],
+  },
+  {
     name: 'Users',
     link: '/users',
     icon: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
@@ -179,8 +193,17 @@ const isActive = (link) => {
 };
 
 const hasActiveChild = (parent) => {
-  return parent.children.some(child => isActive(child.link) || (child.children && hasActiveChild(child)));
+  // Check if parent has children and if children is an array
+  if (!Array.isArray(parent.children)) {
+    return false; // No children to check
+  }
+
+  return parent.children.some(child => 
+    isActive(child.link) || (Array.isArray(child.children) && hasActiveChild(child))
+  );
 };
+
+
 
 const logout = () => {
   // Handle logout logic here

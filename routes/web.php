@@ -82,6 +82,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     Route::resource('teachers', TeacherController::class);
     Route::resource('subjects', SubjectController::class);
     Route::resource('syllabus', SyllabusController::class);
+    
     Route::resource('exam-categories', ExamCategoryController::class);
     Route::resource('exams', ExamController::class);
     Route::resource('grades', GradeController::class);
