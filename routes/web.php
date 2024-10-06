@@ -1,13 +1,17 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExamCategoryController;
 use App\Http\Controllers\Admin\ExamController;
+use App\Http\Controllers\Admin\ExpenseCategoryController;
+use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\GradeBookController;
 use App\Http\Controllers\Admin\GradeController;
 use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\SchoolClassController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\StudentFeeController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\SyllabusController;
 use App\Http\Controllers\Admin\TeacherController;
@@ -29,9 +33,9 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -74,6 +78,9 @@ Route::middleware('auth')->group(function () {
 
 });
 
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('school-classes', SchoolClassController::class);
     Route::resource('sections', SectionController::class);
@@ -82,7 +89,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     Route::resource('teachers', TeacherController::class);
     Route::resource('subjects', SubjectController::class);
     Route::resource('syllabus', SyllabusController::class);
-    
+
     Route::resource('exam-categories', ExamCategoryController::class);
     Route::resource('exams', ExamController::class);
     Route::resource('grades', GradeController::class);
@@ -95,10 +102,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     })->name('gradebooks.showStudents.get');
     // Only allow POST requests for showStudents
     Route::post('gradebooks/show-students', [GradeBookController::class, 'showStudents'])->name('gradebooks.showStudents');
-
-
-
     Route::post('gradebooks/store-marks', [GradeBookController::class, 'storeMarks'])->name('gradebooks.storeMarks');
+
+
+    Route::resource('student-fees', StudentFeeController::class);
+    Route::resource('expense-categories', ExpenseCategoryController::class);
+    Route::resource('expenses', ExpenseController::class);
+
 
 
 });
