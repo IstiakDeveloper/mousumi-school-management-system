@@ -30,7 +30,7 @@
               </svg>
               <span>{{ item.name }}</span>
             </Link>
-          
+
             <button
               v-else
               @click="toggleDropdown(item)"
@@ -52,7 +52,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
             </button>
-          
+
             <ul v-if="item.children && (item.isOpen || hasActiveChild(item))" class="pl-8">
               <li v-for="child in item.children" :key="child.name">
                 <Link
@@ -68,7 +68,7 @@
               </li>
             </ul>
           </li>
-                 
+
         </ul>
       </nav>
     </aside>
@@ -176,6 +176,18 @@ const navItems = ref([
     ],
   },
   {
+    name: 'Accounts',
+    link: '/',
+    icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
+    isActive: false,
+    children: [
+      { name: 'Student Fees', link: '/admin/student-fees', icon: 'M5 5h14v14H5V5z', isActive: false },
+      { name: 'Expenses', link: '/admin/expenses', icon: 'M2 2h20v20H2V2z', isActive: false },
+      { name: 'Expense Categories', link: '/admin/expense-categories', icon: 'M2 2h20v20H2V2z', isActive: false },
+
+    ],
+  },
+  {
     name: 'Users',
     link: '/users',
     icon: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
@@ -198,7 +210,7 @@ const hasActiveChild = (parent) => {
     return false; // No children to check
   }
 
-  return parent.children.some(child => 
+  return parent.children.some(child =>
     isActive(child.link) || (Array.isArray(child.children) && hasActiveChild(child))
   );
 };
