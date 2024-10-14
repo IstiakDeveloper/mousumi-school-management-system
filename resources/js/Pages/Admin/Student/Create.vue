@@ -217,7 +217,7 @@
 
                     <div class="mb-4">
                         <label for="minorities" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Minorities (If have)</label>
-                        <input type="checkbox" v-model="form.minorities" id="minorities" />
+                        <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700" v-model="form.minorities" id="minorities" />
                     </div>
 
                     <div class="mb-4" v-if="form.minorities">
@@ -462,8 +462,21 @@
                     </div>
                 </div>
 
+
+
                 <div class="border border-gray-400 dark:border-gray-600 p-6 rounded bg-white dark:bg-gray-800">
                     <h3 class="text-center font-bold mb-2 text-lg text-gray-800 dark:text-gray-200">Permanent Address</h3>
+
+                    <div class="my-4">
+                        <input
+                            type="checkbox"
+                            id="same_as_present"
+                            v-model="copyAddress"
+                            @change="copyAddressToPermanent"
+                            class="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                        />
+                        <label for="same_as_present" class="ml-2 text-sm">Same as Present Address</label>
+                    </div>
 
                     <div class="mb-4">
                         <label for="permanent_address_division" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Division</label>

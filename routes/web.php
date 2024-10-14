@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\StudentFeeController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\SyllabusController;
 use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
@@ -81,6 +82,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
+Route::get('/admin/payments', [PaymentController::class, 'index'])->name('payments.index');
+Route::post('/admin/payments/mark-as-paid/{studentId}', [PaymentController::class, 'markAsPaid'])->name('payments.markAsPaid');
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('school-classes', SchoolClassController::class);
     Route::resource('sections', SectionController::class);

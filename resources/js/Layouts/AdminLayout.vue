@@ -117,6 +117,8 @@
 import { ref } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import { switchTheme } from '@/theme';
+console.log(usePage());
+
 
 const showSidebar = ref(false);
 const showUserMenu = ref(false);
