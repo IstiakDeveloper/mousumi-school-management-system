@@ -66,7 +66,7 @@ class Student extends Model
         'permanent_address_post_code',
         'information_correct',
     ];
-    
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -74,8 +74,9 @@ class Student extends Model
 
     public function schoolClass()
     {
-        return $this->belongsTo(SchoolClass::class);
+        return $this->belongsTo(SchoolClass::class, 'class_id');
     }
+
     public function class()
     {
         return $this->belongsTo(SchoolClass::class);
@@ -90,4 +91,6 @@ class Student extends Model
     {
         return $this->belongsTo(ParentModel::class);
     }
+
+
 }

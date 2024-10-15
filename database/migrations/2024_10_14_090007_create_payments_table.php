@@ -18,10 +18,13 @@ return new class extends Migration
             $table->integer('month');
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['pending', 'paid', 'request_sent'])->default('pending');
+            $table->enum('payment_method', ['cash', 'bank', 'online'])->nullable(); // Add payment method
+            $table->string('receipt')->nullable(); // Add receipt (path to file)
             $table->timestamps();
 
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
         });
+
     }
 
     /**

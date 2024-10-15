@@ -83,7 +83,9 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 
 
 Route::get('/admin/payments', [PaymentController::class, 'index'])->name('payments.index');
+Route::post('/payments/store', [PaymentController::class, 'store'])->name('payments.store');
 Route::post('/admin/payments/mark-as-paid/{studentId}', [PaymentController::class, 'markAsPaid'])->name('payments.markAsPaid');
+
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('school-classes', SchoolClassController::class);
     Route::resource('sections', SectionController::class);

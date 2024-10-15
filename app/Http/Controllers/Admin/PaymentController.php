@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Payment;
+use App\Models\BankBalance;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -18,23 +19,25 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        // Validate the year and month input
-        $request->validate([
-            'year' => 'required|integer|min:1900|max:' . now()->year,
-            'month' => 'required|integer|min:1|max:12',
-        ]);
+        // Set the current year and month as default values
+        $currentYear = now()->year;
+        $currentMonth = now()->month;
 
-        // Get the year and month from the request
-        $year = $request->input('year');
-        $month = $request->input('month');
+        // Get the year and month from the request, or default to the current year and month
+        $year = $request->input('year', $currentYear);
+        $month = $request->input('month', $currentMonth);
 
-        // Retrieve all students
-        $students = Student::all();
+        // Retrieve all students with their payment status
+        $students = Student::with('schoolClass')->get()->map(function ($student) use ($year, $month) {
+            $payment = Payment::where('student_id', $student->id)
+                              ->where('year', $year)
+                              ->where('month', $month)
+                              ->first();
 
-        // Check the payment status for each student
-        foreach ($students as $student) {
-            $student->payment_status = $this->getPaymentStatus($student->id, $year, $month);
-        }
+            $student->payment_status = $payment ? $payment->status : 'not_paid';
+            $student->payment_details = $payment; // Add payment details for students who have paid
+            return $student;
+        });
 
         // Return the students and payment status data to the Vue component via Inertia
         return Inertia::render('Admin/Payments/Index', [
@@ -43,6 +46,50 @@ class PaymentController extends Controller
             'month' => $month,
         ]);
     }
+
+
+    public function store(Request $request)
+    {
+        // Validate incoming request data
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'year' => 'required|integer',
+            'month' => 'required|integer',
+            'payment_method' => 'required|string|in:bank,cash',
+            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', // Add file validation rules
+        ]);
+
+        // Store the uploaded payment proof
+        $paymentProofPath = $request->file('payment_proof')->store('receipts', 'public');
+
+        // Create or update the payment record
+      $payment = Payment::updateOrCreate(
+            [
+                'student_id' => $request->input('student_id'),
+                'year' => $request->input('year'),
+                'month' => $request->input('month'),
+            ],
+            [
+                'payment_method' => $request->input('payment_method'),
+                'receipt' => $paymentProofPath,
+                'status' => 'paid', // Set payment status as paid
+                'amount' => 400,
+            ]
+        );
+
+
+        $bankBalance = BankBalance::first(); // Assuming only one record exists, adjust as needed
+        if ($bankBalance) {
+            $bankBalance->addIncome(400); // Add the payment amount to the bank balance
+        } else {
+            // Optional: Create a new bank balance record if it doesn't exist
+            BankBalance::create(['balance' => 400]); // Set initial balance if no record exists
+        }
+
+        // Redirect back with a success message
+        return redirect()->route('payments.index')->with('success', 'Payment processed successfully!');
+    }
+
 
     /**
      * Get the payment status of a student for the selected year and month.
@@ -81,25 +128,13 @@ class PaymentController extends Controller
         $year = $request->input('year');
         $month = $request->input('month');
 
-        // Check if payment already exists
-        $payment = Payment::where('student_id', $studentId)
-            ->where('year', $year)
-            ->where('month', $month)
-            ->first();
+        // Create a payment record or update existing
+        Payment::updateOrCreate(
+            ['student_id' => $studentId, 'year' => $year, 'month' => $month],
+            ['receipt' => $request->file('payment_proof')->store('receipts'), 'status' => 'paid']
+        );
 
-        if (!$payment) {
-            // Create a new payment record
-            Payment::create([
-                'student_id' => $studentId,
-                'year' => $year,
-                'month' => $month,
-                'amount' => 100, // Example payment amount
-                'status' => 'paid', // Set the initial status to paid
-            ]);
-
-            return redirect()->back()->with('success', 'Payment marked as completed.');
-        }
-
-        return redirect()->back()->with('error', 'Payment already exists for this period.');
+        // Return a success response
+        return redirect()->route('payments.index')->with('success', 'Payment processed successfully!');
     }
 }
