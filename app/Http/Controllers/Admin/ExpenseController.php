@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankBalance;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
-use App\Models\BankBalance; // Import the BankBalance model
+
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -104,4 +105,3 @@ class ExpenseController extends Controller
         return redirect()->route('admin.expenses.index')->with('success', 'Expense deleted successfully.');
     }
 }
-    

@@ -6,6 +6,10 @@
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
                 <h1 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-300">Create Exam Category</h1>
 
+                <div v-if="successMessage" class="mt-4 p-4 bg-green-100 text-green-800 border border-green-300 rounded">
+                    {{ successMessage }}
+                </div>
+
                 <form @submit.prevent="createExamCategory">
                     <div class="mb-4">
                         <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Category Title</label>
@@ -52,15 +56,7 @@ const errorMessage = ref('');
 
 function createExamCategory() {
     form.post(route('admin.exam-categories.store'), {
-        onSuccess: () => {
-            successMessage.value = 'Exam Category created successfully!';
-            errorMessage.value = ''; // Clear any previous error messages
-            form.reset(); // Reset form fields
-        },
-        onError: () => {
-            errorMessage.value = 'Error creating Exam Category. Please try again.';
-            successMessage.value = ''; // Clear any previous success messages
-        },
+
     });
 }
 </script>

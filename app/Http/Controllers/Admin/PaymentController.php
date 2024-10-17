@@ -87,7 +87,6 @@ class PaymentController extends Controller
         }
 
         // Redirect back with a success message
-        return redirect()->route('payments.index')->with('success', 'Payment processed successfully!');
     }
 
 

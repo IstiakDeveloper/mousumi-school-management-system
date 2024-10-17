@@ -105,6 +105,14 @@
 
       <main class="flex-1 p-6 mt-16 overflow-auto">
         <div class="mx-auto">
+            <div v-if="showFlashSuccess" class="mb-4 p-4 bg-green-100 text-green-700 rounded border-l-4 border-green-500 transition-transform transform duration-300 ease-in-out">
+            {{ flash.success }}
+            </div>
+            <div v-if="showFlashError" class="mb-4 p-4 bg-red-100 text-red-700 rounded border-l-4 border-red-500 transition-transform transform duration-300 ease-in-out">
+            {{ flash.error }}
+            </div>
+
+
           <slot></slot>
         </div>
       </main>
@@ -114,14 +122,40 @@
 
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import { switchTheme } from '@/theme';
-console.log(usePage());
 
+const { flash } = usePage().props;
 
 const showSidebar = ref(false);
 const showUserMenu = ref(false);
+const showFlashSuccess = ref(!!flash.success);
+const showFlashError = ref(!!flash.error);
+
+onMounted(() => {
+  if (flash.success || flash.error) {
+    setTimeout(() => {
+      showFlashSuccess.value = false;
+      showFlashError.value = false;
+    }, 2000);
+  }
+});
+
+watch(() => flash.success, (newVal) => {
+  if (newVal) {
+    showFlashSuccess.value = true;
+    setTimeout(() => showFlashSuccess.value = false, 2000);
+  }
+});
+
+watch(() => flash.error, (newVal) => {
+  if (newVal) {
+    showFlashError.value = true;
+    setTimeout(() => showFlashError.value = false, 2000);
+  }
+});
+
 
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value;

@@ -1,16 +1,12 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
-
 use App\Http\Controllers\Controller;
 use App\Models\ParentModel;
-use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
-
 class ParentController extends Controller
 {
     public function index()
@@ -20,13 +16,11 @@ class ParentController extends Controller
             'parents' => $parents,
         ]);
     }
-
     // Display the form for creating a new parent
     public function create()
     {
         return Inertia::render('Admin/Parent/Create');
     }
-
     // Store a newly created user and parent in storage
     public function store(Request $request)
     {
@@ -34,31 +28,25 @@ class ParentController extends Controller
         $request->validate([
             'name' => 'required|string|max:255', // Validate user name
             'email' => 'required|email|unique:users,email', // Validate email
-            'subject_specialization' => 'required|string|max:255', // Validate subject specialization
-            'class_id' => 'nullable|exists:school_classes,id', // Validate class ID
-            'section_id' => 'nullable|exists:sections,id', // Validate section ID
+            'phone' => 'nullable|string|max:15', // Validate phone number
+            'address' => 'nullable|string|max:255', // Validate address
         ]);
-
         // Create the user with a default password
-        $role = Role::firstOrCreate(['name' => 'Teacher']);
+        $role = Role::firstOrCreate(['name' => 'Parent']);
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make('teacherpassword'), // Default password
+            'password' => Hash::make('parentpassword'),
         ]);
         $user->assignRole($role);
-
-        // Create the teacher model associated with the user
-        Teacher::create([
+        // Create the parent model associated with the user
+        ParentModel::create([
             'user_id' => $user->id,
-            'subject_specialization' => $request->subject_specialization,
-            'class_id' => $request->class_id,
-            'section_id' => $request->section_id,
+            'phone' => $request->phone,
+            'address' => $request->address,
         ]);
-
         return redirect()->route('admin.parents.index')->with('success', 'Parent created successfully!');
     }
-
     // Display the specified parent
     public function show(ParentModel $parent)
     {
@@ -66,7 +54,6 @@ class ParentController extends Controller
             'parent' => $parent->load('user'), // Load the user relationship
         ]);
     }
-
     // Display the form for editing the specified parent
     public function edit(ParentModel $parent)
     {
@@ -74,7 +61,6 @@ class ParentController extends Controller
             'parent' => $parent->load('user'), // Load the user relationship
         ]);
     }
-
     // Update the specified parent in storage
     public function update(Request $request, ParentModel $parent)
     {
@@ -85,30 +71,24 @@ class ParentController extends Controller
             'phone' => 'nullable|string|max:15',
             'address' => 'nullable|string|max:255',
         ]);
-
         // Update the user associated with the parent
         $parent->user->update([
             'name' => $request->name,
             'email' => $request->email,
         ]);
-
         // Update the parent model
         $parent->update([
-            'naem' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address,
         ]);
-
         return redirect()->route('admin.parents.index')->with('success', 'Parent updated successfully!');
     }
-
     // Remove the specified parent from storage
     public function destroy(ParentModel $parent)
     {
         // Delete the user and parent model
         $parent->user->delete();
         $parent->delete();
-
         return redirect()->route('admin.parents.index')->with('success', 'Parent deleted successfully!');
     }
 }
