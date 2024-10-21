@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('subject_specialization');
             $table->foreignId('class_id')->nullable()->constrained('school_classes');
             $table->foreignId('section_id')->nullable()->constrained('sections');
+            $table->decimal('salary_amount', 10, 2)->nullable();
             $table->timestamps();
         });
     }

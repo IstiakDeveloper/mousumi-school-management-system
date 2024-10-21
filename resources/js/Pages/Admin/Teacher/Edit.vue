@@ -67,6 +67,20 @@
                                 <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}</option>
                             </select>
                         </div>
+
+                        <!-- Salary Amount -->
+                        <div>
+                            <label for="salary_amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Salary Amount</label>
+                            <input
+                                v-model="form.salary_amount"
+                                type="number"
+                                id="salary_amount"
+                                required
+                                step="0.01"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.salary_amount" class="text-red-600 text-sm">{{ form.errors.salary_amount }}</span>
+                        </div>
                     </div>
 
                     <div class="mt-6">
@@ -97,6 +111,7 @@ const form = useForm({
     subject_specialization: props.teacher.subject_specialization,
     class_id: props.teacher.class_id,
     section_id: props.teacher.section_id,
+    salary_amount: props.teacher.salary_amount, // Added salary_amount
 });
 
 function submit() {

@@ -16,6 +16,11 @@ use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\SyllabusController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\Report\BankBalanceReportController;
+use App\Http\Controllers\Admin\Report\ExpenseReportController;
+use App\Http\Controllers\Admin\Report\StudentFeeReportController;
+use App\Http\Controllers\Admin\Report\TeacherSalaryReportController;
+use App\Http\Controllers\Admin\TeacherSalaryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermission\PermissionController;
 use App\Http\Controllers\RolePermission\RoleController;
@@ -86,6 +91,21 @@ Route::get('/admin/payments', [PaymentController::class, 'index'])->name('paymen
 Route::post('/payments/store', [PaymentController::class, 'store'])->name('payments.store');
 Route::post('/admin/payments/mark-as-paid/{studentId}', [PaymentController::class, 'markAsPaid'])->name('payments.markAsPaid');
 
+Route::get('/admin/teachers/salaries', [TeacherSalaryController::class, 'index'])->name('salaries.index');
+Route::post('/admin/teacher-salaries/pay-all', [TeacherSalaryController::class, 'payAllTeachers'])->name('teacher_salaries.pay_all');
+Route::post('/teachers/salaries/store', [TeacherSalaryController::class, 'store'])->name('salaries.store');
+
+Route::get('/admin/reports/expenses', [ExpenseReportController::class, 'index'])->name('admin.reports.expenses');
+Route::prefix('admin')->group(function () {
+    Route::get('/reports/student-fees', [StudentFeeReportController::class, 'index'])
+         ->name('admin.reports.student-fees');
+});
+Route::get('/admin/reports/teacher-salaries', [TeacherSalaryReportController::class, 'index'])->name('teacher.salary.report');
+Route::get('/admin/reports/bank-balance', [BankBalanceReportController::class, 'index'])->name('bank.balance.report');
+
+
+
+
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('school-classes', SchoolClassController::class);
     Route::resource('sections', SectionController::class);
@@ -111,6 +131,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 
 
     Route::resource('student-fees', StudentFeeController::class);
+    Route::resource('teacher-salaries', TeacherSalaryController::class);
     Route::resource('expense-categories', ExpenseCategoryController::class);
     Route::resource('expenses', ExpenseController::class);
 

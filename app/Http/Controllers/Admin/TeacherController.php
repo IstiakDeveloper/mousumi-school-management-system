@@ -20,7 +20,6 @@ class TeacherController extends Controller
     public function index()
     {
         $teachers = Teacher::with(['user', 'schoolClass', 'section'])->get();
-        // dd($teachers->toArray());
         return Inertia::render('Admin/Teacher/Index', compact('teachers'));
     }
 
@@ -28,7 +27,7 @@ class TeacherController extends Controller
     {
         $classes = SchoolClass::all();
         $sections = Section::all();
-    
+
         return Inertia::render('Admin/Teacher/Create', [
             'classes' => $classes,
             'sections' => $sections,
@@ -44,11 +43,12 @@ class TeacherController extends Controller
             'subject_specialization' => 'required|string|max:255',
             'class_id' => 'nullable|exists:school_classes,id',
             'section_id' => 'nullable|exists:sections,id',
+            'salary_amount' => 'required|numeric|min:0', // New validation for salary
         ]);
 
         // Create a new role for the teacher and assign the role
         $role = Role::firstOrCreate(['name' => 'Teacher']);
-        
+
         // Create the user with a default password
         $user = User::create([
             'name' => $request->name,
@@ -63,13 +63,13 @@ class TeacherController extends Controller
             'subject_specialization' => $request->subject_specialization,
             'class_id' => $request->class_id,
             'section_id' => $request->section_id,
+            'salary_amount' => $request->salary_amount, // Store the salary amount
         ]);
 
         // Redirect back with success message
         return redirect()->route('admin.teachers.index')->with('success', 'Teacher created successfully.');
     }
 
-    
     /**
      * Display the specified resource.
      */
@@ -103,6 +103,7 @@ class TeacherController extends Controller
             'subject_specialization' => 'required|string|max:255',
             'class_id' => 'nullable|exists:school_classes,id',
             'section_id' => 'nullable|exists:sections,id',
+            'salary_amount' => 'required|numeric|min:0', // New validation for salary
         ]);
 
         $teacher = Teacher::with('user')->findOrFail($id);
@@ -118,6 +119,7 @@ class TeacherController extends Controller
             'subject_specialization' => $request->subject_specialization,
             'class_id' => $request->class_id,
             'section_id' => $request->section_id,
+            'salary_amount' => $request->salary_amount, // Update the salary amount
         ]);
 
         return redirect()->route('admin.teachers.index')->with('success', 'Teacher updated successfully.');

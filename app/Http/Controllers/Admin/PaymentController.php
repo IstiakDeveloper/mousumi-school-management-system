@@ -86,7 +86,8 @@ class PaymentController extends Controller
             BankBalance::create(['balance' => 400]); // Set initial balance if no record exists
         }
 
-        // Redirect back with a success message
+        return redirect()->back()->with('success', 'Student fee paid successfully!');
+
     }
 
 

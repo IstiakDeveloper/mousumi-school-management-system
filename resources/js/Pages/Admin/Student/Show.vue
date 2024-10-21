@@ -3,17 +3,17 @@
     <AdminLayout>
       <div class="max-w-7xl mx-auto p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
         <h1 class="text-3xl font-semibold mb-8 text-gray-800 dark:text-gray-200">Student Profile</h1>
-        
-  
+
+
         <!-- Basic Information -->
         <section class="mb-8">
         <h2 class="text-2xl font-bold mb-6 text-center text-gray-700 dark:text-gray-200">Basic Information</h2>
         <div class="flex flex-col items-center">
         <div class="mb-4">
-            <img 
-              :src="getStudentPhotoUrl(student.photo || 'placeholder.png')" 
-              alt="Student Photo" 
-              class="w-32 h-32 rounded-full object-cover" 
+            <img
+              :src="getStudentPhotoUrl(student.photo || 'placeholder.png')"
+              alt="Student Photo"
+              class="w-32 h-32 rounded-full object-cover"
             />
         </div>
         <div class="space-y-2 text-center">
@@ -33,7 +33,7 @@
         </div>
         </div>
         </section>
-  
+
 
         <!-- Parent Information -->
         <section class="mb-8">
@@ -108,9 +108,9 @@
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8 w-96">
               <h2 class="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200 text-center">Student ID Card</h2>
               <div class="flex justify-center mb-6">
-                <img 
-                  :src="getStudentPhotoUrl(student.photo || 'placeholder.png')" 
-                  alt="Student Photo" 
+                <img
+                  :src="getStudentPhotoUrl(student.photo || 'placeholder.png')"
+                  alt="Student Photo"
                   class="w-24 h-24 rounded-full object-cover"
                 />
               </div>
@@ -121,7 +121,7 @@
                 <p class="text-gray-700 dark:text-gray-300"><strong>Section:</strong> {{ student.section?.name || 'N/A' }}</p>
                 <p class="text-gray-700 dark:text-gray-300"><strong>Date of Birth:</strong> {{ student.date_of_birth || 'N/A' }}</p>
               </div>
-  
+
               <div class="flex justify-center mt-6 space-x-4">
                 <button @click="printIdCard" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">Print</button>
                 <button @click="closeGenerateCardDialog" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow">Close</button>
@@ -132,7 +132,7 @@
 
     </AdminLayout>
 </template>
-  
+
 <script setup>
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -180,5 +180,5 @@ const printIdCard = () => {
   }
 }
 </style> -->
-  
+
   
