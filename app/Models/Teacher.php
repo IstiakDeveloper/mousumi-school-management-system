@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Teacher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'subject_specialization', 'class_id', 'section_id', 'salary_amount'];
+    protected $fillable = ['user_id', 'pin', 'uid', 'subject_specialization', 'class_id', 'section_id', 'salary_amount'];
 
     public function user()
     {
@@ -30,4 +31,8 @@ class Teacher extends Model
         return $this->belongsTo(Section::class);
     }
 
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(TeacherAttendance::class);
+    }
 }

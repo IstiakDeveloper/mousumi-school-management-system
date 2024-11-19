@@ -8,6 +8,34 @@
 
                 <form @submit.prevent="submit">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <div>
+                            <label for="pin" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ID</label>
+                            <input
+                                v-model="form.pin"
+                                type="number"
+                                id="pin"
+                                required
+                                step="0.01"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.pin" class="text-red-600 text-sm">{{ form.errors.salary_amount }}</span>
+                        </div>
+
+                        <div>
+                            <label for="uid" class="block text-sm font-medium text-gray-700 dark:text-gray-300">UID</label>
+                            <input
+                                v-model="form.uid"
+                                type="number"
+                                id="uid"
+                                required
+                                step="0.01"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.uid" class="text-red-600 text-sm">{{ form.errors.salary_amount }}</span>
+                        </div>
+
+
                         <!-- Name -->
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
@@ -114,9 +142,11 @@ const form = useForm({
     name: '',
     email: '',
     subject_specialization: '',
+    pin: null,
+    uid: null,
     class_id: null,
     section_id: null,
-    salary_amount: '', // Added salary_amount to the form
+    salary_amount: '',
 });
 
 function submit() {

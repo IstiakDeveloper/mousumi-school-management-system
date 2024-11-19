@@ -42,8 +42,10 @@ class TeacherController extends Controller
             'email' => 'required|email|max:255|unique:users,email',
             'subject_specialization' => 'required|string|max:255',
             'class_id' => 'nullable|exists:school_classes,id',
+            'pin' => 'nullable|numeric',
+            'uid' => 'nullable|numeric',
             'section_id' => 'nullable|exists:sections,id',
-            'salary_amount' => 'required|numeric|min:0', // New validation for salary
+            'salary_amount' => 'required||min:0', // New validation for salary
         ]);
 
         // Create a new role for the teacher and assign the role
@@ -60,6 +62,8 @@ class TeacherController extends Controller
         // Create the teacher model associated with the user
         Teacher::create([
             'user_id' => $user->id,
+            'pin' => $request->pin,
+            'uid' => $request->uid,
             'subject_specialization' => $request->subject_specialization,
             'class_id' => $request->class_id,
             'section_id' => $request->section_id,

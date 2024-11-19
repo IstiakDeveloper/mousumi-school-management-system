@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\Report\BankBalanceReportController;
 use App\Http\Controllers\Admin\Report\ExpenseReportController;
 use App\Http\Controllers\Admin\Report\StudentFeeReportController;
 use App\Http\Controllers\Admin\Report\TeacherSalaryReportController;
+use App\Http\Controllers\Admin\TeacherAttendanceController;
 use App\Http\Controllers\Admin\TeacherSalaryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermission\PermissionController;
@@ -81,6 +82,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/{user}', [UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
+
+    Route::get('/teacher-attendance', [TeacherAttendanceController::class, 'index'])
+    ->name('teacher-attendance.index');
+
+    Route::post('/teacher-attendance/fetch', [TeacherAttendanceController::class, 'fetch'])
+    ->name('teacher-attendance.fetch');
+
+    Route::get('/teacher-attendance/{teacher}/history', [TeacherAttendanceController::class, 'teacherHistory'])
+    ->name('admin.teacher-attendance.history');
 
 });
 
