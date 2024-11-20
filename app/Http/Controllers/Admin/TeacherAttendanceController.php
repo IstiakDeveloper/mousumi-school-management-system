@@ -7,6 +7,7 @@ use App\Models\Teacher;
 use App\Models\TeacherAttendance;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 
@@ -77,24 +78,79 @@ class TeacherAttendanceController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return Inertia::render('Admin/TeacherAttendance/Index', [
-            'attendances' => TeacherAttendance::with('teacher.user')
-                ->latest('date')
-                ->paginate(10)
-                ->through(fn ($attendance) => [
+        $query = TeacherAttendance::with('teacher.user');
+
+        // Handle date filtering
+        $dateRange = $request->input('dateRange', 'today');
+        $startDate = $request->input('startDate');
+        $endDate = $request->input('endDate');
+
+        switch ($dateRange) {
+            case 'today':
+                $query->whereDate('date', Carbon::today());
+                break;
+            case 'last7':
+                $query->whereBetween('date', [
+                    Carbon::now()->subDays(6)->startOfDay(),
+                    Carbon::now()->endOfDay()
+                ]);
+                break;
+            case 'lastMonth':
+                $query->whereBetween('date', [
+                    Carbon::now()->subMonth()->startOfMonth(),
+                    Carbon::now()->subMonth()->endOfMonth()
+                ]);
+                break;
+            case 'custom':
+                if ($startDate && $endDate) {
+                    $query->whereBetween('date', [
+                        Carbon::parse($startDate)->startOfDay(),
+                        Carbon::parse($endDate)->endOfDay()
+                    ]);
+                }
+                break;
+        }
+
+        // Handle search
+        if ($search = $request->input('search')) {
+            $query->whereHas('teacher.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        $attendances = $query->latest('date')
+            ->paginate(10)
+            ->through(function ($attendance) {
+                $duration = null;
+                if ($attendance->first_attendance && $attendance->last_attendance) {
+                    $first = Carbon::parse($attendance->first_attendance);
+                    $last = Carbon::parse($attendance->last_attendance);
+                    $duration = $last->diff($first)->format('%H:%I:%S');
+                }
+
+                return [
                     'id' => $attendance->id,
                     'teacher_id' => $attendance->teacher_id,
                     'teacher_name' => $attendance->teacher->user->name,
-                    'date' => $attendance->date->format('Y-m-d'),
-                    'check_in' => $attendance->first_attendance?->format('H:i:s'),
-                    'check_out' => $attendance->last_attendance?->format('H:i:s'),
-                    'duration' => $attendance->duration,
+                    'date' => Carbon::parse($attendance->date)->format('Y-m-d'),
+                    'check_in' => $attendance->first_attendance ? Carbon::parse($attendance->first_attendance)->format('H:i:s') : null,
+                    'check_out' => $attendance->last_attendance ? Carbon::parse($attendance->last_attendance)->format('H:i:s') : null,
+                    'duration' => $duration,
                     'total_punches' => $attendance->total_punches,
                     'status' => $attendance->status,
-                ]),
-            'filters' => request()->only(['search', 'date']),
+                ];
+            });
+
+        return Inertia::render('Admin/TeacherAttendance/Index', [
+            'attendances' => $attendances,
+            'filters' => [
+                'search' => $request->input('search'),
+                'dateRange' => $dateRange,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ],
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error')

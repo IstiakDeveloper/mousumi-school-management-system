@@ -83,7 +83,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('/teacher-attendance', [TeacherAttendanceController::class, 'index'])
+    Route::get('/admin/teacher-attendance', [TeacherAttendanceController::class, 'index'])
     ->name('teacher-attendance.index');
 
     Route::post('/teacher-attendance/fetch', [TeacherAttendanceController::class, 'fetch'])
@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/teacher-attendance/{teacher}/history', [TeacherAttendanceController::class, 'teacherHistory'])
     ->name('admin.teacher-attendance.history');
+
 
 });
 
@@ -104,6 +105,10 @@ Route::post('/admin/payments/mark-as-paid/{studentId}', [PaymentController::clas
 Route::get('/admin/teachers/salaries', [TeacherSalaryController::class, 'index'])->name('salaries.index');
 Route::post('/admin/teacher-salaries/pay-all', [TeacherSalaryController::class, 'payAllTeachers'])->name('teacher_salaries.pay_all');
 Route::post('/teachers/salaries/store', [TeacherSalaryController::class, 'store'])->name('salaries.store');
+
+Route::get('/admin/teachers/{teacher}/download-pdf', [TeacherController::class, 'downloadPdf'])
+    ->name('admin.teachers.download-pdf');
+
 
 Route::get('/admin/reports/expenses', [ExpenseReportController::class, 'index'])->name('admin.reports.expenses');
 Route::prefix('admin')->group(function () {
