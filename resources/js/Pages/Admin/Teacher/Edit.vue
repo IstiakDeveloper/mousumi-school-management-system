@@ -8,6 +8,32 @@
 
                 <form @submit.prevent="submit">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <!-- Profile Image -->
+                         <!-- <div>
+                            <label for="profile_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile Image</label>
+                            <input
+                                type="file"
+                                id="profile_image"
+                                @change="handleFileChange"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.profile_image" class="text-red-600 text-sm">{{ form.errors.profile_image }}</span>
+                        </div> -->
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+                            <input
+                                v-model="form.phone_number"
+                                type="text"
+                                id="phone_number"
+                                required
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.phone_number" class="text-red-600 text-sm">{{ form.errors.phone_number }}</span>
+                        </div>
+
+                        <!-- Name -->
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
                             <input
@@ -20,6 +46,7 @@
                             <span v-if="form.errors.name" class="text-red-600 text-sm">{{ form.errors.name }}</span>
                         </div>
 
+                        <!-- Email -->
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                             <input
@@ -32,6 +59,7 @@
                             <span v-if="form.errors.email" class="text-red-600 text-sm">{{ form.errors.email }}</span>
                         </div>
 
+                        <!-- Subject Specialization -->
                         <div>
                             <label for="subject_specialization" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Subject Specialization</label>
                             <input
@@ -44,6 +72,7 @@
                             <span v-if="form.errors.subject_specialization" class="text-red-600 text-sm">{{ form.errors.subject_specialization }}</span>
                         </div>
 
+                        <!-- Class -->
                         <div>
                             <label for="class_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Class</label>
                             <select
@@ -56,6 +85,7 @@
                             </select>
                         </div>
 
+                        <!-- Section -->
                         <div>
                             <label for="section_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Section</label>
                             <select
@@ -81,6 +111,20 @@
                             />
                             <span v-if="form.errors.salary_amount" class="text-red-600 text-sm">{{ form.errors.salary_amount }}</span>
                         </div>
+
+
+
+                        <!-- Address -->
+                        <div>
+                            <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                            <textarea
+                                v-model="form.address"
+                                id="address"
+                                rows="3"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            ></textarea>
+                            <span v-if="form.errors.address" class="text-red-600 text-sm">{{ form.errors.address }}</span>
+                        </div>
                     </div>
 
                     <div class="mt-6">
@@ -95,8 +139,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
+import { defineProps } from 'vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 
 const props = defineProps({
@@ -111,16 +155,23 @@ const form = useForm({
     subject_specialization: props.teacher.subject_specialization,
     class_id: props.teacher.class_id,
     section_id: props.teacher.section_id,
-    salary_amount: props.teacher.salary_amount, // Added salary_amount
+    salary_amount: props.teacher.salary_amount,
+    phone_number: props.teacher.phone_number,
+    address: props.teacher.address,
+    profile_image: null, // Track profile image file
 });
+
+function handleFileChange(event) {
+    form.profile_image = event.target.files[0]; // Save the selected file to the form
+}
 
 function submit() {
     form.put(route('admin.teachers.update', props.teacher.id), {
         onSuccess: () => {
-            // Redirect after successful update
+            // Redirect or show success message
         },
         onError: () => {
-            // Handle errors if needed
+            // Handle errors
         },
     });
 }

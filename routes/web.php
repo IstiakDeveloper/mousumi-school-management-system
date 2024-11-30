@@ -106,7 +106,7 @@ Route::get('/admin/teachers/salaries', [TeacherSalaryController::class, 'index']
 Route::post('/admin/teacher-salaries/pay-all', [TeacherSalaryController::class, 'payAllTeachers'])->name('teacher_salaries.pay_all');
 Route::post('/teachers/salaries/store', [TeacherSalaryController::class, 'store'])->name('salaries.store');
 
-Route::get('/admin/teachers/{teacher}/download-pdf', [TeacherController::class, 'downloadPdf'])
+Route::get('/admin/teachers/{teacher}/download-pdf', [TeacherController::class, 'downloadPDF'])
     ->name('admin.teachers.download-pdf');
 
 

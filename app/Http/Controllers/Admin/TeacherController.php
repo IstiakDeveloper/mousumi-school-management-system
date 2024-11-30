@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
 {
@@ -22,9 +22,23 @@ class TeacherController extends Controller
      */
     public function index()
     {
+        // Load teachers with user, schoolClass, and section relationships
         $teachers = Teacher::with(['user', 'schoolClass', 'section'])->get();
+
+        // Map through teachers and add the full image URL
+        $teachers = $teachers->map(function ($teacher) {
+            // If the teacher has a profile image, generate the full URL
+            $teacher->profile_image_url = $teacher->profile_image
+                ? asset('storage/' . $teacher->profile_image)
+                : null;
+
+            return $teacher;
+        });
+
+        // Return the teachers collection with the profile image URL to the Vue component
         return Inertia::render('Admin/Teacher/Index', compact('teachers'));
     }
+
 
     public function create()
     {
@@ -48,7 +62,10 @@ class TeacherController extends Controller
             'pin' => 'nullable|numeric',
             'uid' => 'nullable|numeric',
             'section_id' => 'nullable|exists:sections,id',
-            'salary_amount' => 'required||min:0', // New validation for salary
+            'salary_amount' => 'required|min:0', // Salary validation
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Image validation
+            'address' => 'nullable|string|max:1000', // Address validation
+            'phone_number' => 'nullable|string|max:15', // Phone number validation
         ]);
 
         // Create a new role for the teacher and assign the role
@@ -62,20 +79,32 @@ class TeacherController extends Controller
         ]);
         $user->assignRole($role);
 
-        // Create the teacher model associated with the user
-        Teacher::create([
+        // Prepare the data for the teacher
+        $teacherData = [
             'user_id' => $user->id,
             'pin' => $request->pin,
             'uid' => $request->uid,
             'subject_specialization' => $request->subject_specialization,
             'class_id' => $request->class_id,
             'section_id' => $request->section_id,
-            'salary_amount' => $request->salary_amount, // Store the salary amount
-        ]);
+            'salary_amount' => $request->salary_amount,
+            'address' => $request->address, // Address
+            'phone_number' => $request->phone_number, // Phone number
+        ];
+
+        // Handle the profile image upload if a file was uploaded
+        if ($request->hasFile('profile_image')) {
+            // Store the image and get the file path
+            $teacherData['profile_image'] = $request->file('profile_image')->store('profile_images', 'public');
+        }
+
+        // Create the teacher model associated with the user
+        Teacher::create($teacherData);
 
         // Redirect back with success message
         return redirect()->route('admin.teachers.index')->with('success', 'Teacher created successfully.');
     }
+
 
     /**
      * Display the specified resource.
@@ -84,6 +113,11 @@ class TeacherController extends Controller
     {
         $teacher = Teacher::with(['user', 'schoolClass', 'section'])
             ->findOrFail($id);
+
+        $teacher->profile_image_url = $teacher->profile_image
+            ? asset('storage/' . $teacher->profile_image)  // Create the full URL for the image
+            : null;
+
 
         // Base query for date range
         $dateRangeQuery = function ($query) use ($request) {
@@ -220,6 +254,9 @@ class TeacherController extends Controller
                 'class' => $teacher->schoolClass ? $teacher->schoolClass->name : null,
                 'section' => $teacher->section ? $teacher->section->name : null,
                 'salary_amount' => $teacher->salary_amount,
+                'phone_number' => $teacher->phone_number,  // Add the phone_number field
+                'address' => $teacher->address,  // Add the address field
+                'profile_image_url' => $teacher->profile_image_url, // Add the profile_image field
             ],
             'attendances' => $attendances,
             'statistics' => $statistics,
@@ -231,6 +268,145 @@ class TeacherController extends Controller
         ]);
     }
 
+
+    public function downloadPDF(string $id, Request $request)
+    {
+        $teacher = Teacher::with(['user', 'schoolClass', 'section'])
+            ->findOrFail($id);
+
+        $teacher->profile_image_url = $teacher->profile_image
+            ? asset('storage/' . $teacher->profile_image)
+            : null;
+
+        // Reuse the date range logic from show method
+        $dateRangeQuery = function ($query) use ($request) {
+            $dateRange = $request->input('dateRange', 'currentMonth');
+            $startDate = $request->input('startDate');
+            $endDate = $request->input('endDate');
+
+            switch ($dateRange) {
+                case 'currentMonth':
+                    $query->whereBetween('date', [
+                        Carbon::now()->startOfMonth(),
+                        Carbon::now()->endOfMonth()
+                    ]);
+                    break;
+                case 'lastMonth':
+                    $query->whereBetween('date', [
+                        Carbon::now()->subMonth()->startOfMonth(),
+                        Carbon::now()->subMonth()->endOfMonth()
+                    ]);
+                    break;
+                case 'last3Months':
+                    $query->whereBetween('date', [
+                        Carbon::now()->subMonths(3)->startOfMonth(),
+                        Carbon::now()->endOfMonth()
+                    ]);
+                    break;
+                case 'custom':
+                    if ($startDate && $endDate) {
+                        $query->whereBetween('date', [
+                            Carbon::parse($startDate)->startOfDay(),
+                            Carbon::parse($endDate)->endOfDay()
+                        ]);
+                    }
+                    break;
+            }
+        };
+
+        $statsQuery = $teacher->attendances()->where(function ($query) use ($dateRangeQuery) {
+            $dateRangeQuery($query);
+        });
+
+        // Get statistics
+        $workingDays = (clone $statsQuery)
+            ->whereIn('status', ['present', 'late', 'absent'])
+            ->count();
+
+        $statistics = [
+            'total_days' => $workingDays,
+            'present_days' => (clone $statsQuery)->where('status', 'present')->count(),
+            'late_days' => (clone $statsQuery)->where('status', 'late')->count(),
+            'absent_days' => (clone $statsQuery)->where('status', 'absent')->count(),
+        ];
+
+        if ($workingDays > 0) {
+            $presentWeight = 1.0;
+            $lateWeight = 0.7;
+            $absentWeight = 0.0;
+
+            $weightedAttendance =
+                ($statistics['present_days'] * $presentWeight) +
+                ($statistics['late_days'] * $lateWeight) +
+                ($statistics['absent_days'] * $absentWeight);
+
+            $statistics['attendance_percentage'] = round(
+                ($weightedAttendance / $workingDays) * 100,
+                2
+            );
+        } else {
+            $statistics['attendance_percentage'] = 0;
+        }
+
+        // Get attendance records
+        $attendances = $teacher->attendances()
+            ->where(function ($query) use ($dateRangeQuery) {
+                $dateRangeQuery($query);
+            })
+            ->latest('date')
+            ->get()
+            ->map(function ($attendance) {
+                $duration = null;
+                if ($attendance->first_attendance && $attendance->last_attendance) {
+                    $first = Carbon::parse($attendance->first_attendance);
+                    $last = Carbon::parse($attendance->last_attendance);
+                    $duration = $last->diff($first)->format('%H:%I:%S');
+                }
+
+                return [
+                    'date' => Carbon::parse($attendance->date)->format('Y-m-d'),
+                    'check_in' => $attendance->first_attendance ? Carbon::parse($attendance->first_attendance)->format('H:i:s') : null,
+                    'check_out' => $attendance->last_attendance ? Carbon::parse($attendance->last_attendance)->format('H:i:s') : null,
+                    'duration' => $duration,
+                    'total_punches' => $attendance->total_punches,
+                    'status' => $attendance->status,
+                ];
+            });
+
+        $pdf = PDF::loadView('pdf.teacher-report', [
+            'teacher' => [
+                'id' => $teacher->id,
+                'name' => $teacher->user->name,
+                'email' => $teacher->user->email,
+                'pin' => $teacher->pin,
+                'uid' => $teacher->uid,
+                'subject_specialization' => $teacher->subject_specialization,
+                'class' => $teacher->schoolClass ? $teacher->schoolClass->name : null,
+                'section' => $teacher->section ? $teacher->section->name : null,
+                'salary_amount' => $teacher->salary_amount,
+                'phone_number' => $teacher->phone_number,
+                'address' => $teacher->address,
+                'profile_image_url' => $teacher->profile_image_url,
+            ],
+            'attendances' => $attendances,
+            'statistics' => $statistics,
+            'dateRange' => $request->input('dateRange', 'currentMonth'),
+            'startDate' => $request->input('startDate'),
+            'endDate' => $request->input('endDate'),
+        ]);
+
+        // Configure PDF options
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->setOptions([
+            'defaultFont' => 'helvetica',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => false,
+            'isFontSubsettingEnabled' => true,
+            'isPhpEnabled' => false,
+        ]);
+
+        return $pdf->download("teacher-{$teacher->id}-report.pdf");
+    }
     /**
      * Show the form for editing the specified resource.
      */
@@ -252,13 +428,17 @@ class TeacherController extends Controller
         // Validate the request
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255,' . $id, // Ensure unique email for the same user
+            'email' => 'required|email|max:255|unique:users,email,' . $id, // Ensure unique email for the same user
             'subject_specialization' => 'required|string|max:255',
             'class_id' => 'nullable|exists:school_classes,id',
             'section_id' => 'nullable|exists:sections,id',
             'salary_amount' => 'required|numeric|min:0', // New validation for salary
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate profile image if uploaded
+            'address' => 'nullable|string|max:1000', // Address validation
+            'phone_number' => 'nullable|string|max:15',
         ]);
 
+        // Find the teacher
         $teacher = Teacher::with('user')->findOrFail($id);
 
         // Update the user's details
@@ -267,16 +447,33 @@ class TeacherController extends Controller
             'email' => $request->email,
         ]);
 
+        // Handle the profile image if uploaded
+        if ($request->hasFile('profile_image')) {
+            // Delete the old profile image if it exists
+            if ($teacher->profile_image) {
+                Storage::delete('public/' . $teacher->profile_image);
+            }
+
+            // Store the new profile image
+            $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
+        } else {
+            $profileImagePath = $teacher->profile_image; // Retain the old image if not updated
+        }
+
         // Update the teacher's details
         $teacher->update([
             'subject_specialization' => $request->subject_specialization,
             'class_id' => $request->class_id,
             'section_id' => $request->section_id,
-            'salary_amount' => $request->salary_amount, // Update the salary amount
+            'salary_amount' => $request->salary_amount,
+            'profile_image' => $profileImagePath, // Update profile image path
+            'address' => $request->address, // Address
+            'phone_number' => $request->phone_number,
         ]);
 
         return redirect()->route('admin.teachers.index')->with('success', 'Teacher updated successfully.');
     }
+
 
     /**
      * Remove the specified resource from storage.

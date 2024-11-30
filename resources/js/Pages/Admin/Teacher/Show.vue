@@ -13,6 +13,7 @@ const props = defineProps({
     filters: Object
 })
 
+
 // State management
 const dateRange = ref(props.filters.dateRange || 'currentMonth')
 const customStartDate = ref(props.filters.startDate || format(new Date(), 'yyyy-MM-dd'))
@@ -83,6 +84,22 @@ const getProgressColor = (percentage) => {
                         Back to Teachers
                         </Link>
 
+                        <Link
+        :href="route('admin.teachers.download-pdf', {
+            teacher: teacher.id,
+            dateRange: dateRange,
+            startDate: dateRange === 'custom' ? customStartDate : null,
+            endDate: dateRange === 'custom' ? customEndDate : null
+        })"
+        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Download PDF
+    </Link>
+
                     </div>
                 </div>
             </div>
@@ -98,12 +115,27 @@ const getProgressColor = (percentage) => {
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Teacher Info Grid -->
                             <div>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Profile
+                                    Image</label>
+                                <div class="mt-1">
+                                    <img v-if="teacher.profile_image_url" :src="teacher.profile_image_url" alt="Profile Image"
+                                        class="w-32 h-32 rounded-full object-cover" />
+                                    <span v-else class="text-gray-500 dark:text-gray-400">No Image</span>
+                                </div>
+                            </div>
+
+                            <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Name</label>
                                 <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.name }}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Email</label>
                                 <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.email }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Phone
+                                    Number</label>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.phone_number || 'Not Provided' }}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">UID</label>
@@ -117,13 +149,12 @@ const getProgressColor = (percentage) => {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Class</label>
-                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.class || 'Not Assigned' }}</p>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.class ||  'Not Assigned' }}</p>
                             </div>
                             <div>
                                 <label
                                     class="block text-sm font-medium text-gray-500 dark:text-gray-400">Section</label>
-
-                                <p class="mt-1 text-base text-gray-900 dark:text-white"> {{ teacher.section || 'Not                                    Assigned' }} </p>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.section || 'Not Assigned' }}</p>
                             </div>
                             <div>
                                 <label
@@ -136,9 +167,18 @@ const getProgressColor = (percentage) => {
                                 <p class="mt-1 text-base text-gray-900 dark:text-white">৳{{ teacher.salary_amount ||
                                     'Not Set' }}</p>
                             </div>
+
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-500 dark:text-gray-400">Address</label>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.address || 'Not Provided' }}</p>
+                            </div>
+
+
                         </div>
                     </div>
                 </div>
+
                 <!-- Attendance Statistics Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                     <!-- Total Days Card -->

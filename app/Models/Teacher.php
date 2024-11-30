@@ -10,7 +10,18 @@ class Teacher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'pin', 'uid', 'subject_specialization', 'class_id', 'section_id', 'salary_amount'];
+    protected $fillable = [
+        'user_id',
+        'pin',
+        'uid',
+        'subject_specialization',
+        'class_id',
+        'section_id',
+        'salary_amount',
+        'profile_image', // Include new fields
+        'address',
+        'phone_number'
+    ];
 
     public function user()
     {

@@ -10,7 +10,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                         <div>
-                            <label for="pin" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ID</label>
+                            <label for="profile_image" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile Image</label>
+                            <input
+                                type="file"
+                                id="profile_image"
+                                @change="handleFileChange"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.profile_image" class="text-red-600 text-sm">{{ form.errors.profile_image }}</span>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+                            <input
+                                v-model="form.phone_number"
+                                type="text"
+                                id="phone_number"
+                                required
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            />
+                            <span v-if="form.errors.phone_number" class="text-red-600 text-sm">{{ form.errors.phone_number }}</span>
+                        </div>
+
+                        <div>
+                            <label for="pin" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teacher Pin</label>
                             <input
                                 v-model="form.pin"
                                 type="number"
@@ -114,6 +138,18 @@
                             />
                             <span v-if="form.errors.salary_amount" class="text-red-600 text-sm">{{ form.errors.salary_amount }}</span>
                         </div>
+
+                        <!-- Address -->
+                        <div>
+                            <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
+                            <textarea
+                                v-model="form.address"
+                                id="address"
+                                rows="3"
+                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200"
+                            ></textarea>
+                            <span v-if="form.errors.address" class="text-red-600 text-sm">{{ form.errors.address }}</span>
+                        </div>
                     </div>
 
                     <!-- Submit Button -->
@@ -147,16 +183,22 @@ const form = useForm({
     class_id: null,
     section_id: null,
     salary_amount: '',
+    profile_image: null,
+    phone_number: '',
+    address: '',
 });
+
+function handleFileChange(event) {
+    form.profile_image = event.target.files[0];
+}
 
 function submit() {
     form.post(route('admin.teachers.store'), {
         onSuccess: () => {
-            // Redirect to the teachers index after successful creation
             this.$inertia.visit(route('admin.teachers.index'));
         },
         onError: (errors) => {
-            // Form errors will automatically be populated in form.errors
+            // Handle errors
         },
     });
 }

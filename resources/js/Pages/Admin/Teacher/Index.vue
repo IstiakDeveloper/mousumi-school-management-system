@@ -23,6 +23,9 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Profile Image</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Name</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -46,6 +49,11 @@
                         </thead>
                         <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200">
                             <tr v-for="teacher in teachers" :key="teacher.id">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
+                                    <img v-if="teacher.profile_image_url" :src="teacher.profile_image_url"
+                                        alt="Profile Image" class="h-10 w-10 rounded-full object-cover" />
+                                    <span v-else class="h-10 w-10 bg-gray-300 rounded-full inline-block"></span>
+                                </td>
                                 <td
                                     class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
                                     {{ teacher.user.name }}</td>
