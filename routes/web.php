@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ExamCategoryController;
 use App\Http\Controllers\Admin\ExamController;
 use App\Http\Controllers\Admin\ExpenseCategoryController;
 use App\Http\Controllers\Admin\ExpenseController;
+use App\Http\Controllers\Admin\FundController;
 use App\Http\Controllers\Admin\GradeBookController;
 use App\Http\Controllers\Admin\GradeController;
 use App\Http\Controllers\Admin\ParentController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\Report\BankBalanceReportController;
 use App\Http\Controllers\Admin\Report\ExpenseReportController;
+use App\Http\Controllers\Admin\Report\FundReportController;
 use App\Http\Controllers\Admin\Report\StudentFeeReportController;
 use App\Http\Controllers\Admin\Report\TeacherSalaryReportController;
 use App\Http\Controllers\Admin\TeacherAttendanceController;
@@ -117,6 +119,7 @@ Route::prefix('admin')->group(function () {
 });
 Route::get('/admin/reports/teacher-salaries', [TeacherSalaryReportController::class, 'index'])->name('teacher.salary.report');
 Route::get('/admin/reports/bank-balance', [BankBalanceReportController::class, 'index'])->name('bank.balance.report');
+Route::get('/admin/report/funds', [FundReportController::class, 'index'])->name('admin.report.fund.index');
 
 
 
@@ -129,6 +132,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     Route::resource('teachers', TeacherController::class);
     Route::resource('subjects', SubjectController::class);
     Route::resource('syllabus', SyllabusController::class);
+    Route::resource('funds', FundController::class);
 
     Route::resource('exam-categories', ExamCategoryController::class);
     Route::resource('exams', ExamController::class);

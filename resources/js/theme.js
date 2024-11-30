@@ -10,7 +10,6 @@ function setThemeOnLoad() {
     }
 }
 
-
 function switchTheme() {
 	if (
         localStorage.theme === 'dark' ||
