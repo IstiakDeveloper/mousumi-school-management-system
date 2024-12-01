@@ -32,13 +32,12 @@
                                     Email</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Subject Specialization</th>
+                                    Designation</th>
+
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     PIN</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    UID</th>
+
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Salary Amount</th>
@@ -60,11 +59,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{
                                     teacher.user.email }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{
-                                    teacher.subject_specialization }}</td>
+                                    teacher.designation }}</td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{
                                     teacher.pin || 'N/A' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{
-                                    teacher.uid || 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{
                                     teacher.salary_amount || 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

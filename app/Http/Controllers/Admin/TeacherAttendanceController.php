@@ -16,7 +16,7 @@ class TeacherAttendanceController extends Controller
     public function fetch()
     {
         try {
-            $response = Http::get('https://socially-striking-squid.ngrok-free.app/api/attendance-logs');
+            $response = Http::get('https://caring-bird-finally.ngrok-free.app/api/attendance-logs');
 
             if (!$response->successful()) {
                 return back()->with('error', 'Failed to fetch attendance data');

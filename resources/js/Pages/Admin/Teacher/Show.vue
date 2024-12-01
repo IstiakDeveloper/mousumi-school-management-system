@@ -84,21 +84,19 @@ const getProgressColor = (percentage) => {
                         Back to Teachers
                         </Link>
 
-                        <Link
-        :href="route('admin.teachers.download-pdf', {
-            teacher: teacher.id,
-            dateRange: dateRange,
-            startDate: dateRange === 'custom' ? customStartDate : null,
-            endDate: dateRange === 'custom' ? customEndDate : null
-        })"
-        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
-    >
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        Download PDF
-    </Link>
+                        <Link :href="route('admin.teachers.download-pdf', {
+                            teacher: teacher.id,
+                            dateRange: dateRange,
+                            startDate: dateRange === 'custom' ? customStartDate : null,
+                            endDate: dateRange === 'custom' ? customEndDate : null
+                        })" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download PDF
+                        </Link>
 
                     </div>
                 </div>
@@ -115,11 +113,11 @@ const getProgressColor = (percentage) => {
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Teacher Info Grid -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Profile
-                                    Image</label>
+                                <!-- <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Profile
+                                    Image</label> -->
                                 <div class="mt-1">
-                                    <img v-if="teacher.profile_image_url" :src="teacher.profile_image_url" alt="Profile Image"
-                                        class="w-32 h-32 rounded-full object-cover" />
+                                    <img v-if="teacher.profile_image_url" :src="teacher.profile_image_url"
+                                        alt="Profile Image" class="w-32 h-32 rounded-full object-cover" />
                                     <span v-else class="text-gray-500 dark:text-gray-400">No Image</span>
                                 </div>
                             </div>
@@ -147,15 +145,32 @@ const getProgressColor = (percentage) => {
                                 <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.pin || 'Not Assigned'
                                     }}</p>
                             </div>
+
                             <div>
-                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Class</label>
-                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.class ||  'Not Assigned' }}</p>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Designation</label>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.designation || 'Not Assigned'
+                                    }}</p>
                             </div>
+
                             <div>
-                                <label
-                                    class="block text-sm font-medium text-gray-500 dark:text-gray-400">Section</label>
-                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.section || 'Not Assigned' }}</p>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Date fo Birth</label>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.dob || 'Not Assigned'
+                                    }}</p>
                             </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Joining Date</label>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.joining_date || 'Not Assigned'
+                                    }}</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Job Status</label>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.job_status || 'Not Assigned'
+                                    }}</p>
+                            </div>
+
+
                             <div>
                                 <label
                                     class="block text-sm font-medium text-gray-500 dark:text-gray-400">Specialization</label>
@@ -164,14 +179,13 @@ const getProgressColor = (percentage) => {
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Salary</label>
-                                <p class="mt-1 text-base text-gray-900 dark:text-white">৳{{ teacher.salary_amount ||
-                                    'Not Set' }}</p>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">৳{{ teacher.salary_amount ||'Not Set' }}</p>
                             </div>
 
                             <div>
                                 <label
                                     class="block text-sm font-medium text-gray-500 dark:text-gray-400">Address</label>
-                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.address || 'Not Provided' }}</p>
+                                <p class="mt-1 text-base text-gray-900 dark:text-white">{{ teacher.address || 'Not  Provided' }}</p>
                             </div>
 
 

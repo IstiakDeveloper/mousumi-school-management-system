@@ -119,8 +119,13 @@ Route::prefix('admin')->group(function () {
 });
 Route::get('/admin/reports/teacher-salaries', [TeacherSalaryReportController::class, 'index'])->name('teacher.salary.report');
 Route::get('/admin/reports/bank-balance', [BankBalanceReportController::class, 'index'])->name('bank.balance.report');
-Route::get('/admin/report/funds', [FundReportController::class, 'index'])->name('admin.report.fund.index');
-
+// Route::get('/admin/report/funds', [FundReportController::class, 'index'])->name('admin.report.fund.index');
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/funds', [FundReportController::class, 'index'])->name('funds');
+        Route::get('/funds/export', [FundReportController::class, 'export'])->name('funds.export');
+    });
+});
 
 
 

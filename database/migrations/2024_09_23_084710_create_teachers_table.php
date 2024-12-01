@@ -14,10 +14,17 @@ return new class extends Migration
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('subject_specialization');
-            $table->foreignId('class_id')->nullable()->constrained('school_classes');
-            $table->foreignId('section_id')->nullable()->constrained('sections');
+            $table->string('pin')->nullable();
+            $table->string('uid')->nullable();
+            $table->string('subject_specialization')->nullable();
             $table->decimal('salary_amount', 10, 2)->nullable();
+            $table->date('dob')->nullable();
+            $table->date('joining_date')->nullable();
+            $table->string('designation')->nullable();
+            $table->enum('job_status', ['active', 'inactive', 'on_leave', 'terminated'])->default('active');
+            $table->string('phone_number')->nullable();
+            $table->text('address')->nullable();
+            $table->string('profile_image')->nullable();
             $table->timestamps();
         });
     }

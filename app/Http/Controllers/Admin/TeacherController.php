@@ -53,55 +53,51 @@ class TeacherController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the request and return errors if validation fails
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'subject_specialization' => 'required|string|max:255',
-            'class_id' => 'nullable|exists:school_classes,id',
-            'pin' => 'nullable|numeric',
-            'uid' => 'nullable|numeric',
-            'section_id' => 'nullable|exists:sections,id',
-            'salary_amount' => 'required|min:0', // Salary validation
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Image validation
-            'address' => 'nullable|string|max:1000', // Address validation
-            'phone_number' => 'nullable|string|max:15', // Phone number validation
+            'subject_specialization' => 'nullable|string|max:255',
+            'pin' => 'nullable|string',
+            'uid' => 'nullable|string',
+            'salary_amount' => 'required|min:0',
+            'dob' => 'required|date',
+            'joining_date' => 'nullable|date',
+            'designation' => 'required|string',
+            'job_status' => 'required|in:active,inactive,on_leave,terminated',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'address' => 'nullable|string|max:1000',
+            'phone_number' => 'nullable|string|max:15',
         ]);
 
-        // Create a new role for the teacher and assign the role
         $role = Role::firstOrCreate(['name' => 'Teacher']);
 
-        // Create the user with a default password
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make('teacherpassword'), // Default password
+            'password' => Hash::make('teacherpassword'),
         ]);
         $user->assignRole($role);
 
-        // Prepare the data for the teacher
         $teacherData = [
             'user_id' => $user->id,
             'pin' => $request->pin,
             'uid' => $request->uid,
             'subject_specialization' => $request->subject_specialization,
-            'class_id' => $request->class_id,
-            'section_id' => $request->section_id,
             'salary_amount' => $request->salary_amount,
-            'address' => $request->address, // Address
-            'phone_number' => $request->phone_number, // Phone number
+            'dob' => $request->dob,
+            'joining_date' => $request->joining_date,
+            'designation' => $request->designation,
+            'job_status' => $request->job_status,
+            'address' => $request->address,
+            'phone_number' => $request->phone_number,
         ];
 
-        // Handle the profile image upload if a file was uploaded
         if ($request->hasFile('profile_image')) {
-            // Store the image and get the file path
             $teacherData['profile_image'] = $request->file('profile_image')->store('profile_images', 'public');
         }
 
-        // Create the teacher model associated with the user
         Teacher::create($teacherData);
 
-        // Redirect back with success message
         return redirect()->route('admin.teachers.index')->with('success', 'Teacher created successfully.');
     }
 
@@ -251,8 +247,11 @@ class TeacherController extends Controller
                 'pin' => $teacher->pin,
                 'uid' => $teacher->uid,
                 'subject_specialization' => $teacher->subject_specialization,
-                'class' => $teacher->schoolClass ? $teacher->schoolClass->name : null,
-                'section' => $teacher->section ? $teacher->section->name : null,
+                'designation' => $teacher->designation,
+                'dob' => $teacher->dob,
+                'joining_date' => $teacher->joining_date,
+                'job_status' => $teacher->job_status,
+
                 'salary_amount' => $teacher->salary_amount,
                 'phone_number' => $teacher->phone_number,  // Add the phone_number field
                 'address' => $teacher->address,  // Add the address field
@@ -425,49 +424,45 @@ class TeacherController extends Controller
 
     public function update(Request $request, string $id)
     {
-        // Validate the request
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $id, // Ensure unique email for the same user
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
             'subject_specialization' => 'required|string|max:255',
-            'class_id' => 'nullable|exists:school_classes,id',
-            'section_id' => 'nullable|exists:sections,id',
-            'salary_amount' => 'required|numeric|min:0', // New validation for salary
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validate profile image if uploaded
-            'address' => 'nullable|string|max:1000', // Address validation
+            'salary_amount' => 'required|numeric|min:0',
+            'dob' => 'required|date',
+            'joining_date' => 'required|date',
+            'designation' => 'required|string',
+            'job_status' => 'required|in:active,inactive,on_leave,terminated',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'address' => 'nullable|string|max:1000',
             'phone_number' => 'nullable|string|max:15',
         ]);
 
-        // Find the teacher
         $teacher = Teacher::with('user')->findOrFail($id);
 
-        // Update the user's details
         $teacher->user->update([
             'name' => $request->name,
             'email' => $request->email,
         ]);
 
-        // Handle the profile image if uploaded
         if ($request->hasFile('profile_image')) {
-            // Delete the old profile image if it exists
             if ($teacher->profile_image) {
                 Storage::delete('public/' . $teacher->profile_image);
             }
-
-            // Store the new profile image
             $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
         } else {
-            $profileImagePath = $teacher->profile_image; // Retain the old image if not updated
+            $profileImagePath = $teacher->profile_image;
         }
 
-        // Update the teacher's details
         $teacher->update([
             'subject_specialization' => $request->subject_specialization,
-            'class_id' => $request->class_id,
-            'section_id' => $request->section_id,
             'salary_amount' => $request->salary_amount,
-            'profile_image' => $profileImagePath, // Update profile image path
-            'address' => $request->address, // Address
+            'dob' => $request->dob,
+            'joining_date' => $request->joining_date,
+            'designation' => $request->designation,
+            'job_status' => $request->job_status,
+            'profile_image' => $profileImagePath,
+            'address' => $request->address,
             'phone_number' => $request->phone_number,
         ]);
 

@@ -15,12 +15,14 @@ class Teacher extends Model
         'pin',
         'uid',
         'subject_specialization',
-        'class_id',
-        'section_id',
         'salary_amount',
         'profile_image', // Include new fields
         'address',
-        'phone_number'
+        'phone_number',
+        'dob',             // Add Date of Birth
+        'joining_date',    // Add Joining Date
+        'designation',     // Add Designation
+        'job_status',      // Add Job Status
     ];
 
     public function user()
