@@ -59,9 +59,9 @@
                         </div>
 
                         <div>
-                            <label for="dob"
+                            <label for="joining_date"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">Joining Date</label>
-                            <input v-model="form.joining_date" type="text" id="joining_date" required
+                            <input v-model="form.joining_date" type="text" id="joining_date"
                                 class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
                             <span v-if="form.errors.joining_date" class="text-red-600 text-sm">{{
                                 form.errors.joining_date }}</span>
@@ -91,7 +91,6 @@
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">Subject
                                 Specialization</label>
                             <input v-model="form.subject_specialization" type="text" id="subject_specialization"
-                                required
                                 class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
                             <span v-if="form.errors.subject_specialization" class="text-red-600 text-sm">{{
                                 form.errors.subject_specialization }}</span>

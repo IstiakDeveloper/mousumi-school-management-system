@@ -17,6 +17,7 @@ const loading = ref(false)
 const dateRange = ref(props.filters.dateRange || 'today')
 const customStartDate = ref(props.filters.startDate || format(new Date(), 'yyyy-MM-dd'))
 const customEndDate = ref(props.filters.endDate || format(new Date(), 'yyyy-MM-dd'))
+const specificDate = ref(props.filters.specificDate || format(new Date(), 'yyyy-MM-dd'))
 
 // Filter states
 const selectedDateRange = computed(() => {
@@ -25,6 +26,11 @@ const selectedDateRange = computed(() => {
             return {
                 startDate: format(startOfToday(), 'yyyy-MM-dd'),
                 endDate: format(startOfToday(), 'yyyy-MM-dd')
+            }
+        case 'specificDay':
+            return {
+                startDate: specificDate.value,
+                endDate: specificDate.value
             }
         case 'last7':
             return {
@@ -56,6 +62,7 @@ watch(() => props.filters, (newFilters) => {
     if (newFilters.dateRange) dateRange.value = newFilters.dateRange
     if (newFilters.startDate) customStartDate.value = newFilters.startDate
     if (newFilters.endDate) customEndDate.value = newFilters.endDate
+    if (newFilters.specificDate) specificDate.value = newFilters.specificDate
     if (newFilters.search) search.value = newFilters.search
 }, { immediate: true })
 
@@ -95,7 +102,9 @@ const applyFilters = () => {
             search: search.value,
             dateRange: dateRange.value,
             startDate,
-            endDate
+            endDate,
+            specificDate: dateRange.value === 'specificDay' ? specificDate.value : null,
+            page: route().params.page || 1 // Preserve current page
         },
         {
             preserveState: true,
@@ -103,6 +112,22 @@ const applyFilters = () => {
             replace: true
         }
     )
+}
+
+const getPaginationUrl = (url) => {
+    if (!url) return url;
+
+    const urlObj = new URL(url);
+    const currentQuery = new URLSearchParams(window.location.search);
+
+    // Preserve all current query parameters except page
+    currentQuery.forEach((value, key) => {
+        if (key !== 'page') {
+            urlObj.searchParams.set(key, value);
+        }
+    });
+
+    return urlObj.toString();
 }
 
 const getStatusColor = (status) => {
@@ -164,6 +189,7 @@ const getStatusColor = (status) => {
                                 <select v-model="dateRange" @change="handleDateRangeChange"
                                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:text-white">
                                     <option value="today">Today</option>
+                                    <option value="specificDay">Specific Day</option>
                                     <option value="last7">Last 7 Days</option>
                                     <option value="lastMonth">Last Month</option>
                                     <option value="custom">Custom Range</option>
@@ -186,6 +212,15 @@ const getStatusColor = (status) => {
                                     <input type="date" v-model="customEndDate" @change="handleDateRangeChange"
                                         class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                                 </div>
+                            </div>
+
+                            <!-- Add specific day input field -->
+                            <div v-if="dateRange === 'specificDay'" class="w-full sm:w-auto">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Select Date
+                                </label>
+                                <input type="date" v-model="specificDate" @change="handleDateRangeChange"
+                                    class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white">
                             </div>
                             <div class="flex items-end">
                                 <button @click="refreshAttendance" :disabled="loading"
@@ -325,8 +360,8 @@ const getStatusColor = (status) => {
                                     </div>
 
                                     <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm">
-                                        <Link v-for="(link, i) in attendances.links" :key="i" :href="link.url"
-                                            v-html="link.label"
+                                        <Link v-for="(link, i) in attendances.links" :key="i"
+                                            :href="getPaginationUrl(link.url)" v-html="link.label"
                                             class="relative inline-flex items-center px-4 py-2 border text-sm font-medium first:rounded-l-md last:rounded-r-md"
                                             :class="[
                                                 link.url ? 'hover:bg-gray-50 dark:hover:bg-gray-700' : 'cursor-default',

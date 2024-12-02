@@ -426,11 +426,10 @@ class TeacherController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $id,
-            'subject_specialization' => 'required|string|max:255',
+            'subject_specialization' => 'nullable|string|max:255',
             'salary_amount' => 'required|numeric|min:0',
             'dob' => 'required|date',
-            'joining_date' => 'required|date',
+            'joining_date' => 'nullable|date',
             'designation' => 'required|string',
             'job_status' => 'required|in:active,inactive,on_leave,terminated',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',

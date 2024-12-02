@@ -10,7 +10,7 @@
                         <i class="fas fa-money-bill-wave text-4xl mr-4"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-950">Bank Balance</h2>
+                        <h2 class="text-lg font-semibold">Bank Balance</h2>
                         <p class="text-3xl font-bold">{{ formatCurrency(bankBalance) }}</p>
                     </div>
                 </div>

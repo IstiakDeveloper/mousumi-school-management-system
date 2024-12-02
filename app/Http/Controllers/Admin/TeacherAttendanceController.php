@@ -25,26 +25,28 @@ class TeacherAttendanceController extends Controller
             $attendanceLogs = $response->json();
             $processedTeachers = [];
             $errors = [];
+            $processedDates = [];
 
             foreach ($attendanceLogs as $log) {
                 try {
-                    // Changed from uid to id for matching
-                    $teacher = Teacher::where('uid', $log['id'])->first();
+                    $teacher = Teacher::where('uid', $log['id'])
+                        ->where('job_status', 'active')
+                        ->first();
 
                     if (!$teacher) {
-                        $errors[] = "No teacher found with ID: {$log['id']} ({$log['name']})";
+                        $errors[] = "No active teacher found with ID: {$log['id']} ({$log['name']})";
                         continue;
                     }
 
-                    // Process each attendance log
                     $attendance = TeacherAttendance::processAttendanceLog($log, $teacher);
+                    $date = Carbon::parse($log['timestamp'])->toDateString();
 
+                    $processedDates[$date] = true;
                     $processedTeachers[$teacher->id] = [
                         'name' => $teacher->user->name,
-                        'date' => Carbon::parse($log['timestamp'])->toDateString(),
+                        'date' => $date,
                         'status' => $attendance->status
                     ];
-
                 } catch (\Exception $e) {
                     $errors[] = "Error processing log for ID {$log['id']}: " . $e->getMessage();
                     Log::error('Attendance Processing Error', [
@@ -52,6 +54,14 @@ class TeacherAttendanceController extends Controller
                         'error' => $e->getMessage(),
                         'log_data' => $log
                     ]);
+                }
+            }
+
+            // Process absents for all processed dates
+            foreach (array_keys($processedDates) as $date) {
+                $date = Carbon::parse($date);
+                if (!$date->isFriday() && !$date->isSaturday()) {
+                    TeacherAttendance::markAbsentForDate($date);
                 }
             }
 
@@ -69,7 +79,6 @@ class TeacherAttendanceController extends Controller
             }
 
             return back();
-
         } catch (\Exception $e) {
             Log::error('Attendance Fetch Error', [
                 'error' => $e->getMessage()
@@ -86,8 +95,14 @@ class TeacherAttendanceController extends Controller
         $dateRange = $request->input('dateRange', 'today');
         $startDate = $request->input('startDate');
         $endDate = $request->input('endDate');
+        $specificDate = $request->input('specificDate');
 
         switch ($dateRange) {
+            case 'specificDay':
+                if ($specificDate) {
+                    $query->whereDate('date', Carbon::parse($specificDate));
+                }
+                break;
             case 'today':
                 $query->whereDate('date', Carbon::today());
                 break;
@@ -120,8 +135,11 @@ class TeacherAttendanceController extends Controller
             });
         }
 
-        $attendances = $query->latest('date')
-            ->paginate(10)
+        // Add sorting
+        $query->latest('date');
+
+        // Get paginated results with all query parameters preserved
+        $attendances = $query->paginate(10)
             ->through(function ($attendance) {
                 $duration = null;
                 if ($attendance->first_attendance && $attendance->last_attendance) {
@@ -141,7 +159,8 @@ class TeacherAttendanceController extends Controller
                     'total_punches' => $attendance->total_punches,
                     'status' => $attendance->status,
                 ];
-            });
+            })
+            ->withQueryString(); // This preserves all query parameters in pagination links
 
         return Inertia::render('Admin/TeacherAttendance/Index', [
             'attendances' => $attendances,
@@ -150,6 +169,7 @@ class TeacherAttendanceController extends Controller
                 'dateRange' => $dateRange,
                 'startDate' => $startDate,
                 'endDate' => $endDate,
+                'specificDate' => $specificDate,
             ],
             'flash' => [
                 'success' => session('success'),

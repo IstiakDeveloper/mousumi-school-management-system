@@ -48,7 +48,7 @@ class TeacherAttendance extends Model
         $currentLogs[] = $log;
 
         // Sort logs by timestamp
-        usort($currentLogs, function($a, $b) {
+        usort($currentLogs, function ($a, $b) {
             return strtotime($a['timestamp']) - strtotime($b['timestamp']);
         });
 
@@ -91,5 +91,26 @@ class TeacherAttendance extends Model
             $duration->h + ($duration->d * 24),
             $duration->i
         );
+    }
+    public static function markAbsentForDate(Carbon $date)
+    {
+        // Get all active teachers who don't have attendance for the given date
+        $teachersWithoutAttendance = Teacher::where('job_status', 'active')
+            ->whereDoesntHave('attendances', function ($query) use ($date) {
+                $query->whereDate('date', $date);
+            })
+            ->get();
+
+        foreach ($teachersWithoutAttendance as $teacher) {
+            self::create([
+                'teacher_id' => $teacher->id,
+                'date' => $date,
+                'status' => 'absent',
+                'total_punches' => 0,
+                'attendance_logs' => []
+            ]);
+        }
+
+        return $teachersWithoutAttendance->count();
     }
 }
