@@ -113,8 +113,7 @@ const getProgressColor = (percentage) => {
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Teacher Info Grid -->
                             <div>
-                                <!-- <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Profile
-                                    Image</label> -->
+
                                 <div class="mt-1">
                                     <img v-if="teacher.profile_image_url" :src="teacher.profile_image_url"
                                         alt="Profile Image" class="w-32 h-32 rounded-full object-cover" />

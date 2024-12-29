@@ -75,6 +75,17 @@
                     </div>
 
                     <div class="mb-4">
+                        <label for="monthly_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Monthly Fee</label>
+                        <input
+                            v-model="form.monthly_fee"
+                            type="text"
+                            id="monthly_fee"
+                            class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                        />
+                        <span v-if="form.errors.monthly_fee" class="text-red-600 text-sm">{{ form.errors.monthly_fee }}</span>
+                    </div>
+
+                    <div class="mb-4">
                         <label for="name_bn" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name (Bangla)</label>
                         <input
                             v-model="form.name_bn"
@@ -649,6 +660,7 @@ const form = useForm({
   student_id: props.student.student_id,
   email: props.student.user.email,
   form_number: props.student.form_number,
+  monthly_fee: props.student.monthly_fee,
   name_bn: props.student.name_bn,
   name_en: props.student.name_en,
   date_of_birth: props.student.date_of_birth,

@@ -16,12 +16,31 @@ use Spatie\Permission\Models\Role;
 
 class StudentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $students = Student::with(['user', 'class', 'section', 'parent'])->get(); // Updated relationship reference
-        // dd($students);
+        $query = Student::with(['user', 'class', 'section', 'parent']);
+
+        // Search
+        if ($request->search) {
+            $query->where('name_en', 'like', "%{$request->search}%")
+                  ->orWhere('student_id', 'like', "%{$request->search}%");
+        }
+
+        // Filter by class
+        if ($request->class_id) {
+            $query->where('class_id', $request->class_id);
+        }
+
+        // Filter by section
+        if ($request->section_id) {
+            $query->where('section_id', $request->section_id);
+        }
+
         return Inertia::render('Admin/Student/Index', [
-            'students' => $students,
+            'students' => $query->paginate(10),
+            'filters' => $request->all(['search', 'class_id', 'section_id']),
+            'classes' => SchoolClass::all(),
+            'sections' => Section::all(),
         ]);
     }
 
@@ -50,13 +69,14 @@ class StudentController extends Controller
         $request->validate([
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'student_id' => 'required|string|unique:students,student_id', // Validate student ID
-            'form_number' => 'nullable|string|unique:students,form_number', // Validate form number
-            'name_bn' => 'nullable|string|max:255', // Validate Bangla name
-            'name_en' => 'required|string|max:255', // Validate English name
-            'birth_certificate_number' => 'required|string|max:255', // Validate birth certificate number
-            'birth_place_district' => 'required|string|max:255', // Validate birth place district
-            'date_of_birth' => 'required|date', // Validate date of birth
-            'gender' => 'required|in:Male,Female,Other', // Validate gender
+            'form_number' => 'nullable|string|unique:students,form_number',
+            'monthly_fee' => 'nullable|string',
+            'name_bn' => 'nullable|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'birth_certificate_number' => 'nullable|string|max:255',
+            'birth_place_district' => 'required|string|max:255',
+            'date_of_birth' => 'required|date',
+            'gender' => 'required|in:Male,Female,Other',
             'nationality' => 'required|string|max:255', // Validate nationality
             'religion' => 'required|string|max:255', // Validate religion
             'blood_group' => 'nullable|string|max:255', // Validate blood group
@@ -74,7 +94,6 @@ class StudentController extends Controller
             'mother_occupation' => 'nullable|string|max:255',
             'mother_dead' => 'boolean',
 
-            // Validate father details
             'father_nid' => 'nullable|string|max:255',
             'father_dob' => 'nullable|date',
             'father_name_bn' => 'nullable|string|max:255',
@@ -83,7 +102,6 @@ class StudentController extends Controller
             'father_occupation' => 'nullable|string|max:255',
             'father_dead' => 'boolean',
 
-            // Present address validation
             'present_address_division' => 'nullable|string|max:255',
             'present_address_district' => 'nullable|string|max:255',
             'present_address_upazila' => 'nullable|string|max:255',
@@ -140,6 +158,7 @@ class StudentController extends Controller
             'parent_id' => $request->parent_id,
             'student_id' => $request->student_id,
             'form_number' => $request->form_number,
+            'monthly_fee' => $request->monthly_fee,
             'name_bn' => $request->name_bn,
             'name_en' => $request->name_en,
             'birth_certificate_number' => $request->birth_certificate_number,
@@ -191,7 +210,7 @@ class StudentController extends Controller
         return redirect()->route('admin.students.index')->with('success', 'Student created successfully!');
     }
 
-    
+
     // Display the specified student
     public function show(Student $student)
     {
@@ -199,7 +218,7 @@ class StudentController extends Controller
             'student' => $student->load(['user', 'class', 'section', 'parent']),
         ]);
     }
-    
+
 
     // Show the form for editing the specified student
     public function edit(Student $student)
@@ -224,6 +243,7 @@ class StudentController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'student_id' => 'required|string',
             'form_number' => 'nullable|string',
+            'monthly_fee' => 'nullable|string',
             'name_bn' => 'nullable|string|max:255',
             'name_en' => 'required|string|max:255',
             'birth_certificate_number' => 'required|string|max:255',
@@ -309,6 +329,7 @@ class StudentController extends Controller
             'parent_id' => $request->parent_id,
             'student_id' => $request->student_id,
             'form_number' => $request->form_number,
+            'monthly_fee' => $request->monthly_fee,
             'name_bn' => $request->name_bn,
             'name_en' => $request->name_en,
             'birth_certificate_number' => $request->birth_certificate_number,

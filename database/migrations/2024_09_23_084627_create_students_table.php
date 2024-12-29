@@ -18,13 +18,12 @@ return new class extends Migration
             $table->foreignId('section_id')->constrained('sections');
             $table->foreignId('parent_id')->nullable()->constrained('parent_models');
 
-            // New fields
             $table->string('photo')->nullable();
             $table->string('student_id')->unique();
             $table->string('form_number')->unique()->nullable();
             $table->string('name_bn')->nullable();
             $table->string('name_en');
-            $table->string('birth_certificate_number');
+            $table->string('birth_certificate_number')->nullable();
             $table->string('birth_place_district');
             $table->date('date_of_birth');
             $table->enum('gender', ['Male', 'Female', 'Other']);

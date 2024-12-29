@@ -19,6 +19,7 @@ class Student extends Model
         'photo',
         'student_id',
         'form_number',
+        'monthly_fee',
         'name_bn',
         'name_en',
         'birth_certificate_number',
