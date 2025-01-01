@@ -1,107 +1,336 @@
+<!-- Index.vue -->
 <template>
     <Head title="Student Fees" />
 
     <AdminLayout>
-        <div class="container mx-auto py-8">
-            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-300">Student Fees</h1>
-                    <Link href="/admin/student-fees/create" class="btn-primary flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z" />
-                        </svg>
-                        Add Fee
-                    </Link>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Fee</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Amount</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200">
-                            <tr v-for="fee in studentFees" :key="fee.id">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">{{ fee.student.name_en }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ fee.school_class.name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ fee.section.name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ fee.total_fee }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ fee.paid_amount }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">{{ fee.due_date }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link :href="route('admin.student-fees.edit', fee.id)" class="inline-flex items-center text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded transition duration-200 ml-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M12.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-9 9a1 1 0 01-.353.213l-3 1a1 1 0 01-1.293-1.293l1-3a1 1 0 01.213-.353l9-9z" />
-                                        </svg>
-                                        Edit
-                                    </Link>
-
-                                    <button @click="confirmDelete(fee.id)" class="inline-flex items-center text-red-600 hover:text-red-800 bg-red-100 hover:bg-red-200 px-3 py-2 rounded transition duration-200 ml-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M6 2a1 1 0 00-1 1v1h12V3a1 1 0 00-1-1H6z" />
-                                            <path fill-rule="evenodd" d="M5 4h10a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm1 1v13h8V5H6z" clip-rule="evenodd" />
-                                        </svg>
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      <div class="container mx-auto py-8 px-4">
+        <!-- Header Section -->
+        <div class="mb-8">
+          <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Student Fees Management</h1>
+            <Link
+              href="/admin/student-fees/create"
+              class="btn-primary flex items-center gap-2"
+            >
+              <PlusIcon class="w-5 h-5" />
+              Add New Fee
+            </Link>
+          </div>
+          <p class="mt-1 text-gray-600 dark:text-gray-400">Manage and monitor student fee records</p>
         </div>
 
-        <ConfirmationDialog
-            :show="isDialogVisible"
-            @update:show="isDialogVisible = $event"
-            @confirm="deleteFee"
-        />
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div class="flex justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Total Due</p>
+                <p class="text-2xl font-bold text-red-600 dark:text-red-400">
+                  ৳{{ formatCurrency(stats.total_due) }}
+                </p>
+              </div>
+              <CashIcon class="w-8 h-8 text-red-500 opacity-20" />
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div class="flex justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Total Collected</p>
+                <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+                  ৳{{ formatCurrency(stats.total_collected) }}
+                </p>
+              </div>
+              <CurrencyDollarIcon class="w-8 h-8 text-green-500 opacity-20" />
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div class="flex justify-between">
+              <div>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Overdue Payments</p>
+                <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                  {{ stats.overdue_count }}
+                </p>
+              </div>
+              <ExclamationIcon class="w-8 h-8 text-yellow-500 opacity-20" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Student Name
+              </label>
+              <input
+                v-model="filters.search"
+                type="text"
+                class="form-input w-full rounded-lg"
+                placeholder="Search student..."
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Payment Status
+              </label>
+              <select
+                v-model="filters.status"
+                class="form-select w-full rounded-lg"
+              >
+                <option value="">All Status</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="overdue">Overdue</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date Range
+              </label>
+              <select
+                v-model="filters.dateRange"
+                class="form-select w-full rounded-lg"
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+
+            <div v-if="filters.dateRange === 'custom'" class="sm:col-span-2 lg:col-span-4 grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Start Date
+                </label>
+                <input
+                  v-model="filters.startDate"
+                  type="date"
+                  class="form-input w-full rounded-lg"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  End Date
+                </label>
+                <input
+                  v-model="filters.endDate"
+                  type="date"
+                  class="form-input w-full rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fee Records Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead class="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th scope="col" class="table-header">Student</th>
+                  <th scope="col" class="table-header">Class/Section</th>
+                  <th scope="col" class="table-header">Amount</th>
+                  <th scope="col" class="table-header">Due Date</th>
+                  <th scope="col" class="table-header">Status</th>
+                  <th scope="col" class="table-header text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr
+                  v-for="fee in fees.data"
+                  :key="fee.id"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <td class="table-cell">
+                    <div class="flex items-center">
+                      <div>
+                        <div class="font-medium text-gray-900 dark:text-white">
+                          {{ fee.student.name_en }}
+                        </div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                          ID: {{ fee.student.student_id }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="table-cell">
+                    <div class="text-sm text-gray-900 dark:text-white">
+                      {{ fee.school_class.name }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      Section: {{ fee.section.name }}
+                    </div>
+                  </td>
+
+                  <td class="table-cell">
+                    <div class="text-sm">
+                      <div class="font-medium text-gray-900 dark:text-white">
+                        ৳{{ formatCurrency(fee.total_fee) }}
+                      </div>
+                      <div class="text-gray-500 dark:text-gray-400">
+                        Paid: ৳{{ formatCurrency(fee.paid_amount) }}
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="table-cell">
+                    <div class="text-sm text-gray-900 dark:text-white">
+                      {{ formatDate(fee.due_date) }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ getDaysUntilDue(fee.due_date) }}
+                    </div>
+                  </td>
+
+                  <td class="table-cell">
+                    <StatusBadge :fee="fee" />
+                  </td>
+
+                  <td class="table-cell text-right space-x-2">
+                    <Link
+                      :href="route('admin.student-fees.edit', fee.id)"
+                      class="btn-icon"
+                      title="Edit"
+                    >
+                      <PencilIcon class="w-4 h-4" />
+                    </Link>
+
+                    <button
+                      @click="confirmDelete(fee)"
+                      class="btn-icon-danger"
+                      title="Delete"
+                    >
+                      <TrashIcon class="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <Pagination
+              :links="fees.links"
+              :from="fees.from"
+              :to="fees.to"
+              :total="fees.total"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <ConfirmationDialog
+        :show="showDeleteModal"
+        :title="`Delete Fee Record`"
+        :message="`Are you sure you want to delete the fee record for ${feeToDelete?.student?.name_en}? This action cannot be undone.`"
+        @confirm="deleteFee"
+        @close="showDeleteModal = false"
+      />
     </AdminLayout>
-</template>
+   </template>
 
-<script setup>
-import { Link, Head, useForm } from '@inertiajs/vue3';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
-import ConfirmationDialog from '@/Components/ConfirmationDialog.vue';
-import { ref } from 'vue';
+   <script setup>
+   import { ref, watch } from 'vue';
+   import { Head, Link, router } from '@inertiajs/vue3';
+   import {
+    PlusIcon, TrashIcon, PencilIcon,
+    CashIcon, CurrencyDollarIcon, ExclamationIcon
+   } from '@heroicons/vue/outline';
+   import { format, formatDistance } from 'date-fns';
+   import debounce from 'lodash/debounce';
+   import AdminLayout from '@/Layouts/AdminLayout.vue';
+   import StatusBadge from '@/Components/StatusBadge.vue';
+   import Pagination from '@/Components/Pagination.vue';
+   import ConfirmationDialog from '@/Components/ConfirmationDialog.vue';
 
-const props = defineProps({
-    studentFees: Array,
-});
+   const props = defineProps({
+    fees: Object,
+    stats: Object
+   });
 
-const isDialogVisible = ref(false);
-const feeToDelete = ref(null);
-const form = useForm({});
+   // Filters state
+   const filters = ref({
+    search: '',
+    status: '',
+    dateRange: 'all',
+    startDate: '',
+    endDate: ''
+   });
 
-function confirmDelete(feeId) {
-    feeToDelete.value = feeId;
-    isDialogVisible.value = true;
-}
+   // Delete modal state
+   const showDeleteModal = ref(false);
+   const feeToDelete = ref(null);
 
-function deleteFee() {
-    if (feeToDelete.value) {
-        form.delete(route('admin.student-fees.destroy', feeToDelete.value), {
-            onSuccess: () => {
-                isDialogVisible.value = false; // Close dialog after successful deletion
-            },
-        });
-    }
-}
-</script>
+   // Methods
+   const formatCurrency = (value) => {
+    return Number(value).toLocaleString('en-IN');
+   };
 
-<style scoped>
-.btn-primary {
-    @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-700 transition duration-200;
-}
+   const formatDate = (date) => {
+    return format(new Date(date), 'MMM dd, yyyy');
+   };
 
-.btn-secondary {
-    @apply bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded shadow hover:bg-gray-400 transition duration-200;
-}
-</style>
+   const getDaysUntilDue = (date) => {
+    return formatDistance(new Date(date), new Date(), { addSuffix: true });
+   };
+
+   const confirmDelete = (fee) => {
+    feeToDelete.value = fee;
+    showDeleteModal.value = true;
+   };
+
+   const deleteFee = () => {
+    router.delete(route('admin.student-fees.destroy', feeToDelete.value.id), {
+      onSuccess: () => {
+        showDeleteModal.value = false;
+        feeToDelete.value = null;
+      }
+    });
+   };
+
+   // Watch filters for changes
+   watch(filters, debounce(() => {
+    router.get(
+      route('admin.student-fees.index'),
+      filters.value,
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+      }
+    );
+   }, 300), { deep: true });
+   </script>
+
+   <style scoped>
+   .table-header {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+   }
+
+   .table-cell {
+    @apply px-6 py-4 whitespace-nowrap;
+   }
+
+   .btn-icon {
+    @apply inline-flex items-center p-2 text-blue-600 hover:text-blue-800 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors;
+   }
+
+   .btn-icon-danger {
+    @apply inline-flex items-center p-2 text-red-600 hover:text-red-800 bg-red-100 hover:bg-red-200 rounded-lg transition-colors;
+   }
+
+   .form-input, .form-select {
+    @apply block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200;
+   }
+   </style>

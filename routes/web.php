@@ -86,13 +86,13 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/admin/teacher-attendance', [TeacherAttendanceController::class, 'index'])
-    ->name('teacher-attendance.index');
+        ->name('teacher-attendance.index');
 
     Route::post('/teacher-attendance/fetch', [TeacherAttendanceController::class, 'fetch'])
-    ->name('teacher-attendance.fetch');
+        ->name('teacher-attendance.fetch');
 
     Route::get('/teacher-attendance/{teacher}/history', [TeacherAttendanceController::class, 'teacherHistory'])
-    ->name('admin.teacher-attendance.history');
+        ->name('admin.teacher-attendance.history');
 
 
 });
@@ -103,6 +103,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::get('/admin/payments', [PaymentController::class, 'index'])->name('payments.index');
 Route::post('/payments/store', [PaymentController::class, 'store'])->name('payments.store');
 Route::post('/admin/payments/mark-as-paid/{studentId}', [PaymentController::class, 'markAsPaid'])->name('payments.markAsPaid');
+
+Route::get('/payments/{payment}/invoice', [PaymentController::class, 'invoice'])
+    ->name('payments.invoice');
+
+Route::get('/payments/{payment}/download-receipt', [PaymentController::class, 'downloadReceipt'])
+    ->name('payments.download-receipt');
 
 Route::get('/admin/teachers/salaries', [TeacherSalaryController::class, 'index'])->name('salaries.index');
 Route::post('/admin/teacher-salaries/pay-all', [TeacherSalaryController::class, 'payAllTeachers'])->name('teacher_salaries.pay_all');
@@ -115,7 +121,7 @@ Route::get('/admin/teachers/{teacher}/download-pdf', [TeacherController::class, 
 Route::get('/admin/reports/expenses', [ExpenseReportController::class, 'index'])->name('admin.reports.expenses');
 Route::prefix('admin')->group(function () {
     Route::get('/reports/student-fees', [StudentFeeReportController::class, 'index'])
-         ->name('admin.reports.student-fees');
+        ->name('admin.reports.student-fees');
 });
 Route::get('/admin/reports/teacher-salaries', [TeacherSalaryReportController::class, 'index'])->name('teacher.salary.report');
 Route::get('/admin/reports/bank-balance', [BankBalanceReportController::class, 'index'])->name('bank.balance.report');
@@ -163,4 +169,4 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

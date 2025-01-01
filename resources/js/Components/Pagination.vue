@@ -1,54 +1,43 @@
-<!-- components/Pagination.vue -->
 <template>
-    <div v-if="links.length > 3" class="flex items-center justify-center gap-1 md:gap-2">
+    <div class="flex items-center justify-center gap-1 md:gap-2">
       <!-- Previous Button -->
       <button
-        :disabled="!hasPreviousPage"
-        @click="handleClick(previousPageUrl)"
+        :disabled="currentPage === 1"
+        @click="$emit('update:modelValue', currentPage - 1)"
         class="pagination-button"
-        :class="{ 'opacity-50 cursor-not-allowed': !hasPreviousPage }"
+        :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
       >
         <ChevronLeftIcon class="h-5 w-5" />
         <span class="sr-only">Previous</span>
       </button>
 
-      <!-- Page Links -->
+      <!-- Page Numbers -->
       <div class="flex items-center gap-1 md:gap-2">
-        <template v-for="(link, index) in normalizedLinks" :key="index">
-          <!-- Current Page -->
-          <button
-            v-if="link.active"
-            class="pagination-button bg-blue-600 text-white hover:bg-blue-700"
-            aria-current="page"
-          >
-            {{ link.label }}
-          </button>
-
-          <!-- Other Pages -->
-          <button
-            v-else-if="link.url && !link.label.includes('Previous') && !link.label.includes('Next')"
-            @click="handleClick(link.url)"
-            class="pagination-button hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            {{ link.label }}
-          </button>
-
-          <!-- Ellipsis -->
-          <span
-            v-else-if="link.label === '...'"
-            class="px-3 py-2 text-gray-500 dark:text-gray-400"
-          >
+        <template v-for="page in displayedPages" :key="page">
+          <span v-if="page === '...'" class="px-3 py-2 text-gray-500 dark:text-gray-400">
             ...
           </span>
+          <button
+            v-else
+            @click="$emit('update:modelValue', page)"
+            class="pagination-button"
+            :class="{
+              'bg-blue-600 text-white hover:bg-blue-700': page === currentPage,
+              'hover:bg-gray-100 dark:hover:bg-gray-700': page !== currentPage
+            }"
+            :aria-current="page === currentPage ? 'page' : undefined"
+          >
+            {{ page }}
+          </button>
         </template>
       </div>
 
       <!-- Next Button -->
       <button
-        :disabled="!hasNextPage"
-        @click="handleClick(nextPageUrl)"
+        :disabled="currentPage === total"
+        @click="$emit('update:modelValue', currentPage + 1)"
         class="pagination-button"
-        :class="{ 'opacity-50 cursor-not-allowed': !hasNextPage }"
+        :class="{ 'opacity-50 cursor-not-allowed': currentPage === total }"
       >
         <ChevronRightIcon class="h-5 w-5" />
         <span class="sr-only">Next</span>
@@ -58,48 +47,53 @@
 
   <script setup>
   import { computed } from 'vue';
-  import { router } from '@inertiajs/vue3';
   import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 
   const props = defineProps({
-    links: {
-      type: Array,
+    modelValue: {
+      type: Number,
+      required: true
+    },
+    total: {
+      type: Number,
       required: true
     }
   });
 
-  // Computed Properties
-  const normalizedLinks = computed(() => {
-    return props.links.filter(link => {
-      return link.label !== 'Previous' && link.label !== 'Next';
-    });
-  });
+  defineEmits(['update:modelValue']);
 
-  const hasPreviousPage = computed(() => {
-    return props.links.find(link => link.label === 'Previous')?.url !== null;
-  });
+  const currentPage = computed(() => props.modelValue);
 
-  const hasNextPage = computed(() => {
-    return props.links.find(link => link.label === 'Next')?.url !== null;
-  });
+  const displayedPages = computed(() => {
+    const pages = [];
+    const total = props.total;
+    const current = props.modelValue;
 
-  const previousPageUrl = computed(() => {
-    return props.links.find(link => link.label === 'Previous')?.url;
-  });
-
-  const nextPageUrl = computed(() => {
-    return props.links.find(link => link.label === 'Next')?.url;
-  });
-
-  // Methods
-  const handleClick = (url) => {
-    if (url) {
-      router.get(url, {}, {
-        preserveScroll: true,
-        preserveState: true,
-      });
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
     }
-  };
+
+    pages.push(1);
+
+    if (current > 3) {
+      pages.push('...');
+    }
+
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (current < total - 2) {
+      pages.push('...');
+    }
+
+    pages.push(total);
+
+    return pages;
+  });
   </script>
 
   <style scoped>

@@ -1,289 +1,340 @@
 <template>
+
+    <Head title="Student Payments" />
+
     <AdminLayout>
-        <div class="container mx-auto mt-6">
-            <h1 class="text-2xl font-bold mb-4">
-                Payments for {{ selectedYear }} - {{ monthName }}
-            </h1>
-
-
-            <!-- Loading Spinner -->
-            <div v-if="loading" class="mt-4 flex justify-center">
-                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0116 0A8 8 0 014 12z"></path>
-                </svg>
-                <span class="ml-2 text-gray-700">Processing...</span>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        Student Payments
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        Manage and track student fee payments
+                    </p>
+                </div>
+                <div class="print:hidden">
+                    <button @click="printReport" class="btn-secondary mr-2">
+                        <PrinterIcon class="w-4 h-4 mr-2" />
+                        Print Report
+                    </button>
+                </div>
             </div>
 
-            <!-- Success Message -->
-            <div v-if="successMessage" class="mt-4 p-4 bg-green-100 text-green-800 border border-green-300 rounded">
-                {{ successMessage }}
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard title="Total Students" :value="stats.total_students" icon="Users" color="blue" />
+                <StatCard title="Paid Students" :value="stats.paid_count"
+                    :percentage="(stats.paid_count / stats.total_students) * 100" icon="CheckCircle" color="green" />
+                <StatCard title="Total Collected" :value="formatCurrency(stats.total_amount)" icon="BanknotesIcon"
+                    color="indigo" />
+                <StatCard title="Pending Amount" :value="formatCurrency(stats.pending_amount)" icon="ExclamationCircle"
+                    color="red" />
             </div>
 
-            <!-- Year and Month Selectors -->
-            <div class="mb-4 flex items-center">
-                <label for="year" class="mr-2">Select Year:</label>
-                <select v-model="selectedYear" @change="fetchStudents" id="year" :disabled="loading"
-                    class="border rounded p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                    <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
-                </select>
 
-                <label for="month" class="ml-4 mr-2">Select Month:</label>
-                <select v-model="selectedMonth" @change="fetchStudents" id="month" :disabled="loading"
-                    class="border rounded p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                    <option v-for="(month, index) in months" :key="index" :value="index + 1">{{ month }}</option>
-                </select>
+            <!-- Filters -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div>
+                            <label class="form-label">Select Year</label>
+                            <select v-model="filters.year" class="form-select">
+                                <option v-for="y in yearRange" :key="y" :value="y">
+                                    {{ y }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Select Month</label>
+                            <select v-model="filters.month" class="form-select">
+                                <option v-for="(name, index) in months" :key="index" :value="index + 1">
+                                    {{ name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Payment Status</label>
+                            <select v-model="filters.status" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="paid">Paid</option>
+                                <option value="not_paid">Not Paid</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Class</label>
+                            <select v-model="filters.class_id" class="form-select">
+                                <option value="">All Classes</option>
+                                <option v-for="c in classes" :key="c.id" :value="c.id">
+                                    {{ c.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Search</label>
+                            <div class="relative">
+                                <input v-model="filters.search" type="text" placeholder="Search student..."
+                                    class="form-input pl-10" />
+                                <SearchIcon class="w-5 h-5 absolute left-3 top-3 text-gray-400" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Students Table -->
-            <table class="min-w-full bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <thead>
-                    <tr>
-                        <th class="py-2 px-4 border-b">Student Name</th>
-                        <th class="py-2 px-4 border-b">Class Name</th>
-                        <th class="py-2 px-4 border-b">Roll</th>
-                        <th class="py-2 px-4 border-b">Payment Status</th>
-                        <th class="py-2 px-4 border-b">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="student in students" :key="student.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="py-2 px-4 border-b dark:text-gray-200">{{ student.name_en }}</td>
-                        <td class="py-2 px-4 border-b dark:text-gray-200 text-center">{{ student.school_class.name }}</td>
-                        <td class="py-2 px-4 border-b dark:text-gray-200 text-center">{{ student.class_role }}</td>
-                        <td class="py-2 px-4 border-b text-center">
-                            <span v-if="student.payment_status === 'paid'" class="text-green-600">Paid</span>
-                            <span v-else class="text-red-600">Not Paid</span>
-                        </td>
-                        <td class="py-2 px-4 border-b text-right">
-                            <button v-if="student.payment_status !== 'paid'" @click="openPaymentModal(student)"
-                                :disabled="loading" aria-label="Pay Now"
-                                class="bg-blue-500 text-white rounded px-4 py-2 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500">
-                                Pay Now
-                            </button>
-                            <button v-if="student.payment_status === 'paid'" @click="openInvoiceModal(student)"
-                                class="bg-green-500 text-white rounded px-4 py-2 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500 ml-2">
-                                View Invoice
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <TableHeader>Student</TableHeader>
+                                <TableHeader>Class/Section</TableHeader>
+                                <TableHeader>Monthly Fee</TableHeader>
+                                <TableHeader>Payment Status</TableHeader>
+                                <TableHeader>Payment Date</TableHeader>
+                                <TableHeader class="text-right">Actions</TableHeader>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr v-for="student in filteredStudents" :key="student.id"
+                                class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img :src="student.photo || '/placeholder.png'"
+                                                class="h-10 w-10 rounded-full" />
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                {{ student.name_en }}
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                ID: {{ student.student_id }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
 
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                                        {{ student.school_class?.name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        Section: {{ student.section?.name }}
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        ৳{{ formatCurrency(student.monthly_fee) }}
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <PaymentStatus :status="student.payment_details.status"
+                                        :method="student.payment_details.method" />
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    {{ formatDate(student.payment_details.date) }}
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <div class="flex justify-end space-x-2">
+                                        <template v-if="student.payment_details.status === 'paid'">
+                                            <button @click="viewInvoice(student)" class="btn-icon" title="View Invoice">
+                                                <DocumentTextIcon class="w-4 h-4" />
+                                            </button>
+                                            <button @click="downloadReceipt(student)" class="btn-icon"
+                                                title="Download Receipt">
+                                                <DownloadIcon class="w-4 h-4" />
+                                            </button>
+                                        </template>
+                                        <button v-else @click="openPaymentModal(student)" class="btn-primary-sm">
+                                            Record Payment
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <Pagination :total="totalPages" v-model="currentPage" />
+                </div>
+            </div>
 
             <!-- Payment Modal -->
-            <div v-if="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h2 class="text-xl font-bold mb-4">Make Payment for {{ monthName }} - {{ selectedYear }}</h2>
-
-                    <!-- Payment Method Selection -->
-                    <div class="mb-4">
-                        <label for="paymentMethod" class="block mb-2">Select Payment Method:</label>
-                        <select v-model="form.payment_method" id="paymentMethod"
-                            class="border rounded p-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 w-full">
-                            <option value="bank">Bank Transfer</option>
-                            <option value="cash">Cash</option>
-                        </select>
-                    </div>
-
-                    <!-- File Upload -->
-                    <div class="mb-4">
-                        <label for="paymentFile" class="block mb-2">Upload Payment Proof (Image/PDF):</label>
-                        <input type="file" id="paymentFile" @change="handleFileUpload"
-                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer dark:text-gray-400 dark:bg-gray-700 dark:border-gray-600" />
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex justify-end">
-                        <button @click="submitPayment"
-                            class="bg-blue-500 text-white rounded px-4 py-2 mr-2 hover:bg-blue-600 transition duration-200 ease-in-out">
-                            Confirm Payment
-                        </button>
-                        <button @click="closePaymentModal"
-                            class="bg-red-500 text-white rounded px-4 py-2 hover:bg-red-600 transition duration-200 ease-in-out">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Invoice Modal -->
-            <div v-if="showInvoiceModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                <div class="bg-white rounded-lg w-2/3 p-8 dark:bg-gray-800 dark:text-gray-200 shadow-lg">
-
-                    <!-- Invoice Header with Logo and School Info -->
-                    <div class="flex justify-between items-center mb-8">
-                        <!-- Logo -->
-                        <div class="flex items-center">
-                            <img src="https://mbnbd.com/storage/logos/J5PIRszbKiktiSRnfF0InHcD6VWv1Z2gv4EnBySZ.png" alt="School Logo" class="h-16 w-16 object-contain">
-                            <div class="ml-4">
-                                <h1 class="text-2xl font-bold">School Name</h1>
-                                <p class="text-sm text-gray-500 dark:text-gray-300">123 School Street, City, Country</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-300">Phone: +123-456-7890</p>
-                            </div>
-                        </div>
-
-                        <!-- Invoice Details -->
-                        <div class="text-right">
-                            <h2 class="text-xl font-bold">Invoice</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-300">Date: {{ new Date().toLocaleDateString() }}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-300">Invoice #: 001234</p>
-                        </div>
-                    </div>
-
-                    <!-- Student Details and Payment Info -->
-                    <div class="mb-6 border-b pb-4">
-                        <h3 class="text-lg font-bold mb-2">Student Information</h3>
-                        <p><strong>Name:</strong> {{ selectedStudent?.name_en }}</p>
-                        <p><strong>Class:</strong> {{ selectedStudent?.school_class.name }}</p>
-                        <p><strong>Roll Number:</strong> {{ selectedStudent?.class_role }}</p>
-                    </div>
-
-                    <!-- Payment Summary -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-bold mb-2">Payment Details</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p><strong>Payment Status:</strong> {{ selectedStudent?.payment_status }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p><strong>Amount Due:</strong> $100.00</p> <!-- Example amount -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer Notes -->
-                    <div class="mb-6">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Please make your payment by bank transfer or cash at the school office. Contact us for any questions.
-                        </p>
-                    </div>
-
-                    <!-- Action Buttons: Print and Close -->
-                    <div class="mt-6 flex justify-end">
-                        <button @click="printInvoice"
-                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200 ease-in-out">
-                            Print Invoice
-                        </button>
-                        <button @click="closeInvoiceModal"
-                            class="ml-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200 ease-in-out">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <PaymentModal v-if="showPaymentModal" :student="selectedStudent" :year="filters.year" :month="filters.month"
+                @close="showPaymentModal = false" @payment-recorded="handlePaymentRecorded" />
         </div>
     </AdminLayout>
 </template>
 
-<script>
-import { useForm } from '@inertiajs/vue3';
+<script setup>
+import { ref, computed, watch } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import debounce from 'lodash/debounce';
+import { format } from 'date-fns';
+import {
+    MagnifyingGlassIcon as SearchIcon,
+    PrinterIcon,
+    DocumentTextIcon,
+    ArrowDownTrayIcon as DownloadIcon,
+    UsersIcon,
+    CheckCircleIcon,
+    BanknotesIcon as CurrencyDollarIcon,
+    ExclamationCircleIcon
+} from '@heroicons/vue/24/outline';
+
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import StatCard from '@/Components/StatCard.vue';
+import TableHeader from '@/Components/TableHeader.vue';
+import PaymentStatus from '@/Components/PaymentStatus.vue';
+import PaymentModal from '@/Components/Payments/PaymentModal.vue';
+import Pagination from '@/Components/Pagination.vue';
 
-export default {
-    components: {
-        AdminLayout,
-    },
-    props: {
-        students: Array,
-        year: Number,
-        month: Number,
-    },
-    data() {
-        return {
-            selectedYear: this.year,
-            selectedMonth: this.month,
-            years: this.generateYears(),
-            months: [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December',
-            ],
-            showModal: false,
-            showInvoiceModal: false,
-            selectedStudent: null,
-            loading: false,
-            successMessage: '',
-            form: useForm({
-                student_id: null,
-                year: this.selectedYear,
-                month: this.selectedMonth,
-                payment_method: '',
-                payment_proof: null,
-            }),
-        };
-    },
-    computed: {
-        monthName() {
-            return this.months[this.selectedMonth - 1];
-        }
-    },
-    methods: {
-        generateYears() {
-            const currentYear = new Date().getFullYear();
-            const years = [];
-            for (let year = currentYear - 100; year <= currentYear; year++) {
-                years.push(year);
-            }
-            return years;
-        },
-        fetchStudents() {
-            this.loading = true;
-            this.successMessage = ''; // Reset success message
-            this.$inertia.get(this.route('payments.index', { year: this.selectedYear, month: this.selectedMonth }), {
-                preserveState: true,
-                onFinish: () => {
-                    this.loading = false;
-                }
-            });
-        },
-        openPaymentModal(student) {
-            this.selectedStudent = student;
-            this.form.student_id = student.id;
-            this.showModal = true;
-        },
-        closePaymentModal() {
-            this.showModal = false;
-            this.form.reset();
-        },
-        openInvoiceModal(student) {
-            this.selectedStudent = student;
-            this.showInvoiceModal = true;
-        },
-        closeInvoiceModal() {
-            this.showInvoiceModal = false;
-        },
-        handleFileUpload(event) {
-            this.form.payment_proof = event.target.files[0];
-        },
-        submitPayment() {
-            this.form.year = this.selectedYear;
-            this.form.month = this.selectedMonth;
+const props = defineProps({
+    students: Array,
+    stats: Object,
+    year: Number,
+    month: Number,
+    filters: Object
+});
 
-            this.loading = true;
-            this.successMessage = '';
+// State
+const showPaymentModal = ref(false);
+const selectedStudent = ref(null);
+const currentPage = ref(1);
+const itemsPerPage = 10;
 
-            this.form.post(this.route('payments.store'), {
-                onSuccess: () => {
-                    this.successMessage = 'Payment successful! Thank you.';
-                    setTimeout(() => {
-                        this.successMessage = '';
-                    }, 1000);
-                },
-                onFinish: () => {
-                    this.loading = false;
-                    this.showModal = false;
-                },
-            });
-        },
-        printInvoice() {
-            window.print();
-        }
+const filters = ref({
+    year: props.year,
+    month: props.month,
+    status: '',
+    class_id: '',
+    search: '',
+});
+
+// Constants
+const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const yearRange = computed(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+});
+
+// Computed
+const filteredStudents = computed(() => {
+    let filtered = props.students;
+
+    if (filters.value.status) {
+        filtered = filtered.filter(s => s.payment_details.status === filters.value.status);
     }
+
+    if (filters.value.class_id) {
+        filtered = filtered.filter(s => s.school_class?.id === filters.value.class_id);
+    }
+
+    if (filters.value.search) {
+        const search = filters.value.search.toLowerCase();
+        filtered = filtered.filter(s =>
+            s.name_en.toLowerCase().includes(search) ||
+            s.student_id.toLowerCase().includes(search)
+        );
+    }
+
+    return filtered;
+});
+
+const totalPages = computed(() =>
+    Math.ceil(filteredStudents.value.length / itemsPerPage)
+);
+
+// Methods
+const formatCurrency = (value) => {
+    return Number(value).toLocaleString('en-IN');
 };
+
+const formatDate = (date) => {
+    return date ? format(new Date(date), 'MMM dd, yyyy HH:mm') : '-';
+};
+
+const openPaymentModal = (student) => {
+    selectedStudent.value = student;
+    showPaymentModal.value = true;
+};
+
+const handlePaymentRecorded = () => {
+    showPaymentModal.value = false;
+    router.reload();
+};
+
+const viewInvoice = (student) => {
+    window.open(route('payments.invoice', student.payment_details.id));
+};
+
+const downloadReceipt = (student) => {
+    window.location.href = route('payments.download-receipt', student.payment_details.id);
+};
+
+const printReport = () => {
+    window.print();
+};
+
+// Watch filters for changes
+watch(filters, debounce((value) => {
+    router.get(
+        route('payments.index'),
+        value,
+        {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true
+        }
+    );
+}, 300), { deep: true });
 </script>
 
 <style scoped>
-.fixed {
-    position: fixed;
+.form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+}
+
+.form-input {
+    @apply block w-full border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200;
+}
+
+.form-select {
+    @apply block w-full border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200;
+}
+
+.btn-primary-sm {
+    @apply inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+.btn-secondary {
+    @apply inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700;
+}
+
+.btn-icon {
+    @apply p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+}
+
+@media print {
+    .print\:hidden {
+        display: none;
+    }
 }
 </style>

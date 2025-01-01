@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePaymentRequest;
 use App\Models\Student;
 use App\Models\Payment;
 use App\Models\BankBalance;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -19,76 +21,109 @@ class PaymentController extends Controller
      */
     public function index(Request $request)
     {
-        // Set the current year and month as default values
-        $currentYear = now()->year;
-        $currentMonth = now()->month;
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month', now()->month);
 
-        // Get the year and month from the request, or default to the current year and month
-        $year = $request->input('year', $currentYear);
-        $month = $request->input('month', $currentMonth);
+        $students = Student::with(['schoolClass', 'section'])
+            ->select('students.*')
+            ->leftJoin('payments', function($join) use ($year, $month) {
+                $join->on('students.id', '=', 'payments.student_id')
+                    ->where('payments.year', $year)
+                    ->where('payments.month', $month);
+            })
+            ->addSelect([
+                'payment_id' => Payment::select('id')
+                    ->whereColumn('student_id', 'students.id')
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->limit(1),
+                'payment_status' => Payment::select('status')
+                    ->whereColumn('student_id', 'students.id')
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->limit(1),
+                'payment_method' => Payment::select('payment_method')
+                    ->whereColumn('student_id', 'students.id')
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->limit(1),
+                'payment_date' => Payment::select('created_at')
+                    ->whereColumn('student_id', 'students.id')
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->limit(1)
+            ])
+            ->get()
+            ->map(function ($student) {
+                $student->payment_details = [
+                    'status' => $student->payment_status ?? 'not_paid',
+                    'method' => $student->payment_method,
+                    'date' => $student->payment_date ? Carbon::parse($student->payment_date)->format('Y-m-d H:i:s') : null
+                ];
+                return $student;
+            });
 
-        // Retrieve all students with their payment status
-        $students = Student::with('schoolClass')->get()->map(function ($student) use ($year, $month) {
-            $payment = Payment::where('student_id', $student->id)
-                              ->where('year', $year)
-                              ->where('month', $month)
-                              ->first();
+        $stats = [
+            'total_students' => $students->count(),
+            'paid_count' => $students->where('payment_status', 'paid')->count(),
+            'total_amount' => Payment::where('year', $year)->where('month', $month)->sum('amount'),
+            'pending_amount' => ($students->count() * 400) - Payment::where('year', $year)->where('month', $month)->sum('amount')
+        ];
 
-            $student->payment_status = $payment ? $payment->status : 'not_paid';
-            $student->payment_details = $payment; // Add payment details for students who have paid
-            return $student;
-        });
-
-        // Return the students and payment status data to the Vue component via Inertia
         return Inertia::render('Admin/Payments/Index', [
             'students' => $students,
+            'stats' => $stats,
             'year' => $year,
             'month' => $month,
+            'filters' => $request->only(['search', 'status', 'class_id'])
         ]);
     }
 
-
-    public function store(Request $request)
+    public function store(StorePaymentRequest $request)
     {
-        // Validate incoming request data
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'year' => 'required|integer',
-            'month' => 'required|integer',
-            'payment_method' => 'required|string|in:bank,cash',
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048', // Add file validation rules
-        ]);
+        try {
+            $paymentProofPath = $request->file('payment_proof')->store('public/receipts');
 
-        // Store the uploaded payment proof
-        $paymentProofPath = $request->file('payment_proof')->store('receipts', 'public');
+            $student = Student::findOrFail($request->student_id);
 
-        // Create or update the payment record
-      $payment = Payment::updateOrCreate(
-            [
-                'student_id' => $request->input('student_id'),
-                'year' => $request->input('year'),
-                'month' => $request->input('month'),
-            ],
-            [
-                'payment_method' => $request->input('payment_method'),
+            $payment = Payment::create([
+                'student_id' => $student->id,
+                'year' => $request->year,
+                'month' => $request->month,
+                'payment_method' => $request->payment_method,
                 'receipt' => $paymentProofPath,
-                'status' => 'paid', // Set payment status as paid
-                'amount' => 400,
-            ]
-        );
+                'status' => 'paid',
+                'amount' => $student->monthly_fee ?? 400,
+                'paid_by' => auth()->id(),
+                'notes' => $request->notes
+            ]);
 
+            if ($request->payment_method === 'bank') {
+                BankBalance::first()?->addIncome($payment->amount);
+            }
 
-        $bankBalance = BankBalance::first(); // Assuming only one record exists, adjust as needed
-        if ($bankBalance) {
-            $bankBalance->addIncome(400); // Add the payment amount to the bank balance
-        } else {
-            // Optional: Create a new bank balance record if it doesn't exist
-            BankBalance::create(['balance' => 400]); // Set initial balance if no record exists
+            return back()->with('success', 'Payment recorded successfully');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to process payment: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('success', 'Student fee paid successfully!');
-
     }
+
+    public function generateInvoice(Payment $payment)
+    {
+        $payment->load(['student.schoolClass', 'student.section']);
+
+        return Inertia::render('Admin/Payments/Invoice', [
+            'payment' => $payment,
+            'school' => [
+                'name' => config('app.school_name'),
+                'address' => config('app.school_address'),
+                'logo' => config('app.school_logo'),
+                'phone' => config('app.school_phone')
+            ]
+        ]);
+    }
+
 
 
     /**
