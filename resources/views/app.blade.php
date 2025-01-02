@@ -18,5 +18,21 @@
     </head>
     <body class="font-sans antialiased bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white">
         @inertia
+
+        <script>
+            window.Toast = {
+                success(message) {
+                    // Implementation of success toast
+                    alert(message); // Replace with your preferred toast implementation
+                },
+                error(message) {
+                    // Implementation of error toast
+                    alert(message); // Replace with your preferred toast implementation
+                }
+            };
+            </script>
     </body>
+
+    <!-- In your app.blade.php -->
+
 </html>

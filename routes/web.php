@@ -101,14 +101,10 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 
 
 Route::get('/admin/payments', [PaymentController::class, 'index'])->name('payments.index');
-Route::post('/payments/store', [PaymentController::class, 'store'])->name('payments.store');
+
 Route::post('/admin/payments/mark-as-paid/{studentId}', [PaymentController::class, 'markAsPaid'])->name('payments.markAsPaid');
 
-Route::get('/payments/{payment}/invoice', [PaymentController::class, 'invoice'])
-    ->name('payments.invoice');
 
-Route::get('/payments/{payment}/download-receipt', [PaymentController::class, 'downloadReceipt'])
-    ->name('payments.download-receipt');
 
 Route::get('/admin/teachers/salaries', [TeacherSalaryController::class, 'index'])->name('salaries.index');
 Route::post('/admin/teacher-salaries/pay-all', [TeacherSalaryController::class, 'payAllTeachers'])->name('teacher_salaries.pay_all');
@@ -133,7 +129,14 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     });
 });
 
-
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/payments/store', [PaymentController::class, 'store'])->name('payments.store');
+    // Payment routes
+    Route::get('/payments/{payment}/invoice', [PaymentController::class, 'invoice'])
+        ->name('payments.invoice');
+    Route::get('/payments/{payment}/receipt', [PaymentController::class, 'downloadReceipt'])
+        ->name('payments.download-receipt');
+});
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::resource('school-classes', SchoolClassController::class);

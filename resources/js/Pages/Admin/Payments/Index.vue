@@ -24,13 +24,14 @@
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <StatCard title="Total Students" :value="stats.total_students" icon="Users" color="blue" />
+                <StatCard title="Total Students" :value="stats.total_students" icon="UserGroupIcon" color="blue" />
                 <StatCard title="Paid Students" :value="stats.paid_count"
-                    :percentage="(stats.paid_count / stats.total_students) * 100" icon="CheckCircle" color="green" />
-                <StatCard title="Total Collected" :value="formatCurrency(stats.total_amount)" icon="BanknotesIcon"
+                    :percentage="(stats.paid_count / stats.total_students) * 100" icon="CheckCircleIcon"
+                    color="green" />
+                <StatCard title="Total Collected" :value="formatCurrency(stats.total_amount)" icon="CurrencyDollarIcon"
                     color="indigo" />
-                <StatCard title="Pending Amount" :value="formatCurrency(stats.pending_amount)" icon="ExclamationCircle"
-                    color="red" />
+                <StatCard title="Pending Amount" :value="formatCurrency(stats.pending_amount)"
+                    icon="ExclamationCircleIcon" color="red" />
             </div>
 
 
@@ -174,7 +175,7 @@
 
             <!-- Payment Modal -->
             <PaymentModal v-if="showPaymentModal" :student="selectedStudent" :year="filters.year" :month="filters.month"
-                @close="showPaymentModal = false" @payment-recorded="handlePaymentRecorded" />
+                @close="closePaymentModal" @payment-recorded="handlePaymentRecorded" />
         </div>
     </AdminLayout>
 </template>
@@ -201,6 +202,8 @@ import TableHeader from '@/Components/TableHeader.vue';
 import PaymentStatus from '@/Components/PaymentStatus.vue';
 import PaymentModal from '@/Components/Payments/PaymentModal.vue';
 import Pagination from '@/Components/Pagination.vue';
+import { useToast } from "vue-toastification";
+
 
 const props = defineProps({
     students: Array,
@@ -215,6 +218,7 @@ const showPaymentModal = ref(false);
 const selectedStudent = ref(null);
 const currentPage = ref(1);
 const itemsPerPage = 10;
+const toast = useToast();
 
 const filters = ref({
     year: props.year,
@@ -271,6 +275,21 @@ const formatDate = (date) => {
     return date ? format(new Date(date), 'MMM dd, yyyy HH:mm') : '-';
 };
 
+const handleSuccess = () => {
+    toast.success("Operation completed successfully!");
+};
+const handleError = () => {
+    toast.error("Something went wrong!");
+};
+const handleInfo = () => {
+    toast.info("Here's some information.");
+};
+
+const handleWarning = () => {
+    toast.warning("Warning message!");
+};
+
+
 const openPaymentModal = (student) => {
     selectedStudent.value = student;
     showPaymentModal.value = true;
@@ -282,11 +301,15 @@ const handlePaymentRecorded = () => {
 };
 
 const viewInvoice = (student) => {
-    window.open(route('payments.invoice', student.payment_details.id));
+    if (student.payment_details.status === 'paid') {
+        window.open(route('admin.payments.invoice', { payment: student.payment_id }));
+    }
 };
 
 const downloadReceipt = (student) => {
-    window.location.href = route('payments.download-receipt', student.payment_details.id);
+    if (student.payment_details.status === 'paid') {
+        window.location.href = route('admin.payments.download-receipt', { payment: student.payment_id });
+    }
 };
 
 const printReport = () => {

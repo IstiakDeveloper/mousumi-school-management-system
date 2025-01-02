@@ -7,6 +7,7 @@ use App\Models\Teacher;
 use App\Models\TeacherSalary;
 use App\Models\BankBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TeacherSalaryController extends Controller
@@ -19,39 +20,30 @@ class TeacherSalaryController extends Controller
      */
     public function index(Request $request)
     {
-        // Set the current year and month as default values
         $currentYear = now()->year;
         $currentMonth = now()->month;
 
-        // Get the year and month from the request, or default to the current year and month
-        $year = $request->input('year', $currentYear);
-        $month = $request->input('month', $currentMonth);
+        $year = $request->get('year', $currentYear);
+        $month = $request->get('month', $currentMonth);
 
-        // Retrieve all teachers with their salary payment status and related user information
-        $teachers = Teacher::with('user') // Eager load the related user data
+        $teachers = Teacher::with('user')
             ->get()
             ->map(function ($teacher) use ($year, $month) {
-                // Retrieve salary details for the given year and month
                 $salary = TeacherSalary::where('teacher_id', $teacher->id)
-                                       ->where('year', $year)
-                                       ->where('month', $month)
-                                       ->first();
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->first();
 
-                // Add salary status and salary details
                 $teacher->salary_status = $salary ? $salary->status : 'not_paid';
-                $teacher->salary_details = $salary; // Add salary details for teachers who have been paid
-
-                // Add user information to the teacher data
-                $teacher->user = $teacher->user; // This will include the related user data
+                $teacher->salary_details = $salary;
 
                 return $teacher;
             });
 
-        // Return the teachers and salary status data to the Vue component via Inertia
         return Inertia::render('Admin/TeacherSalaries/Index', [
             'teachers' => $teachers,
-            'year' => $year,
-            'month' => $month,
+            'year' => (int) $year,
+            'month' => (int) $month,
         ]);
     }
 
@@ -64,111 +56,168 @@ class TeacherSalaryController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate incoming request data
-        $request->validate([
-            'teacher_id' => 'required|exists:teachers,id',
-            'year' => 'required|integer',
-            'month' => 'required|integer',
-            'payment_method' => 'required|string',
-            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $teacher = Teacher::findOrFail($request->input('teacher_id'));
-        $salaryAmount = $teacher->salary_amount;
+            $teacher = Teacher::findOrFail($request->teacher_id);
 
-        // Store the uploaded receipt (if any)
-        $receiptPath = $request->file('receipt') ? $request->file('receipt')->store('receipts', 'public') : null;
+            // Check for existing payment
+            $existingPayment = TeacherSalary::forMonth($request->year, $request->month)
+                ->where('teacher_id', $teacher->id)
+                ->paid()
+                ->exists();
 
-        // Create or update the teacher salary record
-        $teacherSalary = TeacherSalary::updateOrCreate(
-            [
-                'teacher_id' => $request->input('teacher_id'),
-                'year' => $request->input('year'),
-                'month' => $request->input('month'),
-            ],
-            [
-                'payment_method' => $request->input('payment_method'),
-                'receipt' => $receiptPath,
-                'status' => 'paid', // Set salary status as paid
-                'amount' => $salaryAmount,
-            ]
-        );
+            if ($existingPayment) {
+                throw new \Exception('Salary already paid for this period.');
+            }
 
-;        // Update the bank balance (if payment method is 'bank')
+            $salary = TeacherSalary::create([
+                'teacher_id' => $teacher->id,
+                'year' => $request->year,
+                'month' => $request->month,
+                'amount' => $teacher->salary_amount,
+                'payment_method' => $request->payment_method,
+                'receipt' => $request->file('receipt')?->store('receipts', 'public'),
+            ]);
 
-        $bankBalance = BankBalance::first(); // Assuming only one record exists, adjust as needed
-        if ($bankBalance) {
-            $bankBalance->deductExpense($salaryAmount); // Add the payment amount to the bank balance
-        } else {
-            // Optional: Create a new bank balance record if it doesn't exist
-            BankBalance::create(['balance' => $salaryAmount]); // Set initial balance if no record exists
+            if ($request->payment_method === 'bank') {
+                $bankBalance = BankBalance::lockForUpdate()->firstOrFail();
+
+                if ($bankBalance->balance < $salary->amount) {
+                    throw new \Exception('Insufficient bank balance.');
+                }
+
+                $bankBalance->deductExpense($salary->amount);
+            }
+
+            $salary->markAsPaid();
+
+            DB::commit();
+            return back()->with('success', "Salary paid for {$salary->full_period}");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['message' => $e->getMessage()]);
         }
-
-
-        // Redirect back with a success message
-        return redirect()->back()->with('success', 'Teacher salary recorded successfully!');
     }
 
 
     public function payAllTeachers(Request $request)
-{
-    // Validate incoming request data
-    $request->validate([
-        'year' => 'required|integer',
-        'month' => 'required|integer',
-        'payment_method' => 'required|string',
-        'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-    ]);
+    {
+        try {
+            // Validate incoming request data
+            $validated = $request->validate([
+                'year' => 'required|integer',
+                'month' => 'required|integer|between:1,12',
+                'payment_method' => 'required|string|in:cash,bank,mobile_banking',
+                'receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            ]);
 
-    // Get all teachers
-    $teachers = Teacher::all();
+            DB::beginTransaction();
 
-    // Store the uploaded receipt (if any)
-    $receiptPath = $request->file('receipt') ? $request->file('receipt')->store('receipts', 'public') : null;
+            // Store the uploaded receipt (if any)
+            $receiptPath = null;
+            if ($request->hasFile('receipt')) {
+                $receiptPath = $request->file('receipt')->store('receipts', 'public');
+            }
 
-    // Loop through each teacher and create/update the salary record
-    foreach ($teachers as $teacher) {
-        // Check if the salary for the given year and month is already paid
-        $teacherSalary = TeacherSalary::where('teacher_id', $teacher->id)
-                                      ->where('year', $request->input('year'))
-                                      ->where('month', $request->input('month'))
-                                      ->first();
+            // Get unpaid teachers for the specified month
+            $teachers = Teacher::whereNotExists(function ($query) use ($validated) {
+                $query->select(DB::raw(1))
+                    ->from('teacher_salaries')
+                    ->whereColumn('teacher_salaries.teacher_id', 'teachers.id')
+                    ->where('year', $validated['year'])
+                    ->where('month', $validated['month'])
+                    ->where('status', 'paid');
+            })->get();
 
-        // Skip if the salary is already paid for this teacher
-        if ($teacherSalary && $teacherSalary->status === 'paid') {
-            continue; // Skip this iteration and move to the next teacher
+            if ($teachers->isEmpty()) {
+                return response()->json([
+                    'message' => 'No unpaid teachers found for the selected period.'
+                ], 404);
+            }
+
+            // Calculate total required amount
+            $totalAmount = $teachers->sum('salary_amount');
+
+            // Check bank balance if payment method is bank
+            if ($validated['payment_method'] === 'bank') {
+                $bankBalance = BankBalance::lockForUpdate()->first();
+
+                if (!$bankBalance || $bankBalance->balance < $totalAmount) {
+                    throw new \Exception('Insufficient bank balance for processing all payments.');
+                }
+            }
+
+            $processedCount = 0;
+            $failedTeachers = [];
+
+            foreach ($teachers as $teacher) {
+                try {
+                    // Create salary record
+                    $salary = TeacherSalary::create([
+                        'teacher_id' => $teacher->id,
+                        'year' => $validated['year'],
+                        'month' => $validated['month'],
+                        'amount' => $teacher->salary_amount,
+                        'payment_method' => 'cash',
+                        'receipt' => $receiptPath,
+                        'status' => 'paid'
+                    ]);
+
+                    // Update bank balance if payment method is bank
+                    if ($validated['payment_method'] === 'bank') {
+                        $bankBalance->deductExpense($teacher->salary_amount);
+                    }
+
+                    // Trigger salary paid event
+                    event(new TeacherSalaryPaidEvent($salary));
+
+                    $processedCount++;
+                } catch (\Exception $e) {
+                    $failedTeachers[] = [
+                        'id' => $teacher->id,
+                        'name' => $teacher->user->name,
+                        'error' => $e->getMessage()
+                    ];
+                    \Log::error('Failed to process salary for teacher: ' . $teacher->id, [
+                        'error' => $e->getMessage(),
+                        'teacher' => $teacher->toArray()
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            // Prepare response message
+            $message = $processedCount . ' teacher' . ($processedCount != 1 ? 's' : '') . ' paid successfully.';
+            if (!empty($failedTeachers)) {
+                $message .= ' Failed to process ' . count($failedTeachers) . ' payment(s).';
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => [
+                    'processed_count' => $processedCount,
+                    'failed_teachers' => $failedTeachers,
+                    'total_amount' => $totalAmount,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            \Log::error('Batch salary payment failed', [
+                'error' => $e->getMessage(),
+                'request' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process salary payments: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Get the teacher's salary amount
-        $salaryAmount = $teacher->salary_amount;
-
-        // Update or create the salary record for the teacher
-        TeacherSalary::updateOrCreate(
-            [
-                'teacher_id' => $teacher->id,
-                'year' => $request->input('year'),
-                'month' => $request->input('month'),
-            ],
-            [
-                'payment_method' => $request->input('payment_method'),
-                'receipt' => $receiptPath,
-                'status' => 'paid',
-                'amount' => $salaryAmount,
-            ]
-        );
-
-        // Optionally, update the bank balance
-        $bankBalance = BankBalance::first(); // Assuming only one record exists, adjust as needed
-        if ($bankBalance) {
-            $bankBalance->deductExpense($salaryAmount); // Deduct the payment amount from the bank balance
-        } else {
-            // Optional: Create a new bank balance record if it doesn't exist
-            BankBalance::create(['balance' => $salaryAmount]); // Set initial balance if no record exists
-        }
-    }
-
-        // Return a success response
-        return redirect()->route('salaries.index')->with('success', 'All teacher salaries recorded successfully!');
     }
 
 

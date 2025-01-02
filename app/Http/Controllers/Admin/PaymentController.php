@@ -7,8 +7,10 @@ use App\Http\Requests\StorePaymentRequest;
 use App\Models\Student;
 use App\Models\Payment;
 use App\Models\BankBalance;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PaymentController extends Controller
@@ -26,7 +28,7 @@ class PaymentController extends Controller
 
         $students = Student::with(['schoolClass', 'section'])
             ->select('students.*')
-            ->leftJoin('payments', function($join) use ($year, $month) {
+            ->leftJoin('payments', function ($join) use ($year, $month) {
                 $join->on('students.id', '=', 'payments.student_id')
                     ->where('payments.year', $year)
                     ->where('payments.month', $month);
@@ -102,7 +104,10 @@ class PaymentController extends Controller
                 BankBalance::first()?->addIncome($payment->amount);
             }
 
-            return back()->with('success', 'Payment recorded successfully');
+            return back()->with([
+                'success' => 'Payment recorded successfully',
+                'payment' => $payment->id
+            ]);
 
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to process payment: ' . $e->getMessage());
@@ -171,5 +176,102 @@ class PaymentController extends Controller
 
         // Return a success response
         return redirect()->route('payments.index')->with('success', 'Payment processed successfully!');
+    }
+
+
+    /**
+     * Generate and display a payment invoice
+     *
+     * @param Payment $payment
+     * @return \Inertia\Response
+     */
+    public function invoice(Payment $payment)
+    {
+        $payment->load(['student.schoolClass', 'student.section']);
+
+        return Inertia::render('Admin/Payments/Invoice', [
+            'payment' => [
+                'id' => $payment->id,
+                'invoice_no' => sprintf('INV-%06d', $payment->id),
+                'date' => $payment->created_at->format('Y-m-d'),
+                'amount' => $payment->amount,
+                'payment_method' => $payment->payment_method,
+                'status' => $payment->status,
+                'student' => [
+                    'name' => $payment->student->name_en,
+                    'id' => $payment->student->student_id,
+                    'class' => $payment->student->schoolClass->name,
+                    'section' => $payment->student->section->name,
+                ],
+                'year' => $payment->year,
+                'month' => $payment->month,
+            ],
+            'school' => [
+                'name' => config('app.school_name', 'Mousumi Biddyaniketan'),
+                'address' => config('app.school_address', 'Ukilpara, Naogaon'),
+                'logo' => config('app.school_logo', '/logo.png'),
+                'phone' => config('app.school_phone', '+880-XXX-XXXXXX'),
+                'email' => config('app.school_email', 'mbnbd@gmail.com'),
+            ]
+        ]);
+    }
+
+    /**
+     * Download the payment receipt
+     *
+     * @param Payment $payment
+     * @return \Illuminate\Http\Response
+     */
+    public function downloadReceipt(Payment $payment)
+    {
+        // Check if receipt exists
+        if (!$payment->receipt || !Storage::exists($payment->receipt)) {
+            return back()->with('error', 'Receipt not found');
+        }
+
+        // Get file extension
+        $extension = pathinfo(storage_path($payment->receipt), PATHINFO_EXTENSION);
+
+        // Generate filename
+        $filename = sprintf(
+            'Receipt-%s-%s-%s.%s',
+            $payment->student->student_id,
+            $payment->year,
+            $payment->month,
+            $extension
+        );
+
+        // Return file download
+        return Storage::download($payment->receipt, $filename);
+    }
+
+    /**
+     * Generate PDF version of the receipt
+     *
+     * @param Payment $payment
+     * @return \Illuminate\Http\Response
+     */
+    public function generatePdfReceipt(Payment $payment)
+    {
+        $payment->load(['student.schoolClass', 'student.section']);
+
+        $data = [
+            'payment' => $payment,
+            'school' => [
+                'name' => config('app.school_name', 'Your School Name'),
+                'address' => config('app.school_address', 'School Address'),
+                'logo' => config('app.school_logo', '/logo.png'),
+                'phone' => config('app.school_phone', '+880-XXX-XXXXXX'),
+            ]
+        ];
+
+        $pdf = Pdf::loadView('pdf.payment-receipt', $data);
+
+        return $pdf->download(sprintf(
+            'Receipt-%s-%s-%s.pdf',
+            $payment->student->student_id,
+            $payment->year,
+            $payment->month
+        ));
     }
 }
