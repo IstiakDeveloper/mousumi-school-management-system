@@ -164,10 +164,53 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 
 
     Route::resource('student-fees', StudentFeeController::class);
-    Route::resource('teacher-salaries', TeacherSalaryController::class);
+    // Route::resource('teacher-salaries', TeacherSalaryController::class);
     Route::resource('expense-categories', ExpenseCategoryController::class);
     Route::resource('expenses', ExpenseController::class);
 
+
+    Route::get('/teacher-salaries', [TeacherSalaryController::class, 'index'])
+        ->name('teacher-salaries.index');
+
+        Route::post('/teacher-salaries/generate', [TeacherSalaryController::class, 'generateMonthlySalaries'])
+        ->name('teacher-salaries.generate');
+
+    Route::post('/teacher-salaries/{salary}/process', [TeacherSalaryController::class, 'processSalaryPayment'])
+        ->name('teacher-salaries.process');
+
+    Route::post('/teacher-salaries/bulk-process', [TeacherSalaryController::class, 'bulkProcessSalaries'])
+        ->name('teacher-salaries.bulk-process');
+
+    Route::get('/teacher-salaries/report', [TeacherSalaryController::class, 'getSalaryReport'])
+        ->name('teacher-salaries.report');
+
+    // Export routes
+    Route::get('/teacher-salaries/export', [TeacherSalaryController::class, 'exportSalaries'])
+        ->name('teacher-salaries.export');
+
+    Route::get('/teacher-salaries/export/monthly/{year}/{month}', [TeacherSalaryController::class, 'exportMonthlySalaries'])
+        ->name('teacher-salaries.export.monthly');
+
+    // API routes for dynamic data
+    Route::get('/teacher-salaries/statistics', [TeacherSalaryController::class, 'getStatistics'])
+        ->name('teacher-salaries.statistics');
+
+    Route::get('/teacher-salaries/pending-count', [TeacherSalaryController::class, 'getPendingSalariesCount'])
+        ->name('teacher-salaries.pending-count');
+
+    // Teacher-specific salary routes
+    Route::get('/teacher-salaries/teacher/{teacher}', [TeacherSalaryController::class, 'getTeacherSalaryHistory'])
+        ->name('teacher-salaries.teacher.history');
+
+    Route::post('/teacher-salaries/teacher/{teacher}/update-salary', [TeacherSalaryController::class, 'updateTeacherSalary'])
+        ->name('teacher-salaries.teacher.update-salary');
+
+    // Bulk operations
+    Route::post('/teacher-salaries/bulk-generate/{year}/{month}', [TeacherSalaryController::class, 'bulkGenerateSalaries'])
+        ->name('teacher-salaries.bulk-generate');
+
+    Route::post('/teacher-salaries/bulk-update-status', [TeacherSalaryController::class, 'bulkUpdateStatus'])
+        ->name('teacher-salaries.bulk-update-status');
 
 
 });
